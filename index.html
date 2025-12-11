@@ -3,18 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>社會學導論 x 吉伊卡哇特訓班 (免伺服器版)</title>
+    <title>社會學導論 x 吉伊卡哇特訓班</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
     <style>
         /* 吉伊卡哇風格 CSS */
         @import url('https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap');
 
         :root {
-            --primary: #ffcbda; /* Chiikawa Pink */
-            --secondary: #aaddff; /* Hachiware Blue */
-            --accent: #fffacd; /* Usagi Yellow */
-            --text: #5a4d4d;
-            --bg: #fffbf0;
-            --error: #ff6b6b;
+            --primary: #ffcbda; --secondary: #aaddff; --accent: #fffacd;
+            --text: #5a4d4d; --bg: #fffbf0; --error: #ff6b6b;
         }
 
         body {
@@ -23,248 +21,60 @@
             background-image: radial-gradient(circle, #ffe4e1 2px, transparent 2.5px);
             background-size: 30px 30px;
             color: var(--text);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            margin: 0; padding: 0;
+            display: flex; justify-content: center; align-items: center;
             min-height: 100vh;
         }
 
         .container {
-            width: 90%;
-            max-width: 600px;
-            background: white;
-            border-radius: 30px;
+            width: 90%; max-width: 600px;
+            background: white; border-radius: 30px;
             box-shadow: 0 10px 25px rgba(255, 182, 193, 0.4);
-            padding: 30px;
-            text-align: center;
-            border: 5px solid white;
-            outline: 5px dashed var(--primary);
-            position: relative;
-            overflow: hidden;
-            max-height: 90vh;
-            overflow-y: auto;
+            padding: 30px; text-align: center;
+            border: 5px solid white; outline: 5px dashed var(--primary);
+            position: relative; overflow-y: auto; max-height: 90vh;
         }
 
-        h1 {
-            color: var(--primary);
-            text-shadow: 2px 2px 0px var(--text);
-            font-size: 2.5em;
-            margin-bottom: 20px;
-        }
-
-        h2 { color: var(--secondary); }
-
+        h1 { color: var(--primary); text-shadow: 2px 2px 0px var(--text); font-size: 2.5em; margin-bottom: 20px; }
         .btn {
-            background-color: var(--secondary);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            font-size: 1.2em;
-            border-radius: 50px;
-            cursor: pointer;
-            margin: 10px;
-            font-family: inherit;
-            transition: transform 0.1s, box-shadow 0.1s;
-            box-shadow: 0 5px 0 #77aadd;
-            width: 80%;
-            max-width: 300px;
+            background-color: var(--secondary); color: white; border: none;
+            padding: 12px 25px; font-size: 1.2em; border-radius: 50px;
+            cursor: pointer; margin: 10px; width: 80%; max-width: 300px;
+            box-shadow: 0 5px 0 #77aadd; transition: transform 0.1s;
         }
-
-        .btn:active {
-            transform: translateY(5px);
-            box-shadow: none;
-        }
-
+        .btn:active { transform: translateY(5px); box-shadow: none; }
         .btn-start { background-color: var(--primary); box-shadow: 0 5px 0 #ff99bb; }
-        .btn-retry { background-color: var(--accent); color: #8B4513; box-shadow: 0 5px 0 #e6d980; }
         .btn-note { background-color: #ffd700; color: #8B4513; box-shadow: 0 5px 0 #daa520; }
-
+        
         .screen { display: none; }
-        .active { display: block; animation: popIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+        .active { display: block; animation: popIn 0.5s; }
+        @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
-        @keyframes popIn {
-            0% { transform: scale(0.8); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        /* Input Styles */
         input[type="text"] {
-            padding: 15px;
-            border-radius: 20px;
-            border: 3px solid var(--secondary);
-            font-size: 1.1em;
-            outline: none;
-            width: 70%;
-            text-align: center;
-            color: var(--text);
-            transition: border-color 0.3s;
+            padding: 15px; border-radius: 20px; border: 3px solid var(--secondary);
+            font-size: 1.1em; width: 70%; text-align: center; outline: none;
         }
+        .input-error { border-color: var(--error) !important; background-color: #fff0f0; }
 
-        .input-error {
-            border-color: var(--error) !important;
-            animation: shakeInput 0.4s ease-in-out;
-            background-color: #fff0f0;
-        }
-
-        @keyframes shakeInput {
-            0% { transform: translateX(0); }
-            25% { transform: translateX(-10px); }
-            50% { transform: translateX(10px); }
-            75% { transform: translateX(-10px); }
-            100% { transform: translateX(0); }
-        }
+        /* Note Styles */
+        .note-content { text-align: left; background: #fff8e1; padding: 20px; border-radius: 15px; border: 2px dashed #f6e58d; margin-bottom: 20px; }
+        .highlight { background: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%); padding: 0 5px; border-radius: 3px; }
 
         /* Quiz Styles */
-        .timer {
-            font-size: 1.5em;
-            color: var(--primary);
-            font-weight: bold;
-            margin-bottom: 15px;
-        }
-
-        .question-card {
-            background: #fdfdfd;
-            border: 2px solid var(--secondary);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 20px;
-            font-size: 1.2em;
-            line-height: 1.6;
-        }
-
-        .options-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
         .option-btn {
-            background: white;
-            border: 2px solid #eee;
-            padding: 15px;
-            border-radius: 15px;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-align: left;
-            font-size: 1em;
-            color: var(--text);
+            background: white; border: 2px solid #eee; padding: 15px;
+            border-radius: 15px; cursor: pointer; text-align: left; margin-bottom: 10px;
+            width: 100%; box-sizing: border-box;
         }
-
-        .option-btn:hover {
-            background-color: #f0f8ff;
-            border-color: var(--secondary);
-        }
-
-        .option-btn.correct {
-            background-color: #d4edda;
-            border-color: #28a745;
-            color: #155724;
-        }
-
-        .option-btn.wrong {
-            background-color: #f8d7da;
-            border-color: #dc3545;
-            color: #721c24;
-            animation: shake 0.5s;
-        }
-
-        @keyframes shake {
-            0% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            50% { transform: translateX(5px); }
-            75% { transform: translateX(-5px); }
-            100% { transform: translateX(0); }
-        }
-
-        .controls {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-        }
-
-        .nav-btn {
-            background: #ddd;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 15px;
-            cursor: pointer;
-            color: #666;
-        }
-
-        /* Study Note Styles */
-        .note-content {
-            text-align: left;
-            background: #fff8e1;
-            padding: 20px;
-            border-radius: 15px;
-            border: 2px dashed #f6e58d;
-            max-height: 400px;
-            overflow-y: auto;
-            margin-bottom: 20px;
-            line-height: 1.8;
-        }
-        .note-title {
-            color: #d35400;
-            font-weight: bold;
-            font-size: 1.1em;
-            margin-top: 15px;
-            border-bottom: 2px solid #ffeaa7;
-            display: inline-block;
-        }
-        .highlight {
-            background: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%);
-            padding: 0 5px;
-            border-radius: 3px;
-        }
-
-        /* Leaderboard */
-        .leaderboard-list {
-            list-style: none;
-            padding: 0;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
+        .option-btn.correct { background-color: #d4edda; border-color: #28a745; }
+        .option-btn.wrong { background-color: #f8d7da; border-color: #dc3545; }
+        
         .leaderboard-item {
-            background: white;
-            border-bottom: 2px dashed #eee;
-            padding: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            background: white; border-bottom: 2px dashed #eee; padding: 10px;
+            display: flex; justify-content: space-between;
         }
-
-        .rank-1 { color: gold; font-weight: bold; font-size: 1.2em; }
-        .rank-2 { color: silver; font-weight: bold; }
-        .rank-3 { color: #cd7f32; font-weight: bold; }
-
-        .feedback {
-            margin-top: 10px;
-            font-weight: bold;
-            min-height: 1.5em;
-        }
-
-        .progress-container {
-            width: 100%;
-            background-color: #eee;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            height: 10px;
-        }
-        .progress-bar {
-            height: 100%;
-            background-color: var(--secondary);
-            border-radius: 10px;
-            width: 0%;
-            transition: width 0.3s;
-        }
-
+        .rank-1 { color: gold; font-weight: bold; }
     </style>
-    
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -272,57 +82,37 @@
         <div id="start-screen" class="screen active">
             <h1>社會學特訓班</h1>
             <div style="font-size: 3em;">🐹</div>
-            <p>準備好面對 Sean 老師的挑戰了嗎？<br>衝突論、偏差、性別、課程總結...</p>
-            <input type="text" id="username" placeholder="請輸入你的暱稱 (必填)">
-            <p id="name-error-msg" style="color: var(--error); font-size: 0.9em; display: none;">* 討伐前一定要留下大名！</p>
+            <p>準備好面對 Sean 老師的挑戰了嗎？</p>
+            <input type="text" id="username" placeholder="輸入你的暱稱 (必填)">
+            <p id="name-error-msg" style="color: var(--error); display: none;">* 請輸入名稱！</p>
             <br><br>
             <button class="btn btn-start" onclick="startQuiz()">開始討伐！(Start)</button>
             <br>
-            <button class="btn btn-note" onclick="showNotes()">📖 查看課程總結精華</button>
+            <button class="btn btn-note" onclick="showNotes()">📖 課程總結精華</button>
             <br>
             <button class="btn" onclick="showLeaderboard()">🏆 查看排行榜</button>
         </div>
 
         <div id="note-screen" class="screen">
-            <h2>📜 課程總結精華筆記</h2>
+            <h2>📜 課程總結精華</h2>
             <div class="note-content">
-                <p>這是根據老師最新的「課程總結」整理的必背重點，考試寫問答題很有用喔！</p>
-                
-                <div class="note-title">1. 社會學想像力 (C. Wright Mills)</div>
-                <p>核心概念：將<span class="highlight">個人的煩惱 (Personal Troubles)</span> 連結到 <span class="highlight">公共的議題 (Public Issues)</span>。</p>
-                <p>例子：失業不只是你不努力，可能是經濟結構蕭條。</p>
-
-                <div class="note-title">2. 個人與社會的關係</div>
-                <p>社會塑造了我們（透過社會化），但我們也參與建構社會（透過互動）。</p>
-                <p>我們不是完全自由的，選擇受到「社會位置」（階級、性別）的限制。</p>
-
-                <div class="note-title">3. 為什麼要學社會學？</div>
-                <p>為了看穿「常識」(Common Sense) 背後的假象。</p>
-                <p>為了理解不平等，並對社會議題保持批判性思考。</p>
-
-                <div class="note-title">4. 三大理論口訣</div>
-                <p><b>功能論：</b>社會像人體，求穩定和諧。</p>
-                <p><b>衝突論：</b>社會是戰場，既得利益者剝削弱勢。</p>
-                <p><b>互動論：</b>社會是表演，看我們怎麼定義符號。</p>
+                <p><b>1. 社會學想像力：</b>將<span class="highlight">個人煩惱</span>連結到<span class="highlight">公共議題</span>。</p>
+                <p><b>2. 三大理論：</b><br>功能論(穩定)、衝突論(鬥爭/不平等)、互動論(微觀/表演)。</p>
+                <p><b>3. 偏差手段：</b>犯罪化(關)、醫療化(醫)、福利化(幫)、修復式(談)。</p>
             </div>
-            <button class="btn" onclick="hideNotes()">我記住了！回首頁</button>
+            <button class="btn" onclick="hideNotes()">我記住了！</button>
         </div>
 
         <div id="quiz-screen" class="screen">
-            <div class="timer">⏱️ <span id="time-display">00:00</span></div>
-            <div class="progress-container">
-                <div class="progress-bar" id="progress-bar"></div>
+            <div style="font-size: 1.5em; color: var(--primary); font-weight: bold;">⏱️ <span id="time-display">00:00</span></div>
+            <div id="question-text" style="font-size: 1.2em; margin: 20px 0; font-weight: bold;">題目載入中...</div>
+            <div id="options-container"></div>
+            <div id="feedback-text" style="margin: 10px; font-weight: bold; min-height: 1.5em;"></div>
+            <div style="display: flex; justify-content: space-between;">
+                <button class="btn" style="width: 45%;" onclick="prevQuestion()">⬅️ 上一題</button>
+                <button class="btn" style="width: 45%;" onclick="nextQuestion()">下一題 ➡️</button>
             </div>
-            <div class="question-card" id="question-text">
-                題目載入中...
-            </div>
-            <div class="options-grid" id="options-container"></div>
-            <div class="feedback" id="feedback-text"></div>
-            <div class="controls">
-                <button class="nav-btn" onclick="prevQuestion()">⬅️ 上一題</button>
-                <button class="btn" id="next-btn" onclick="nextQuestion()">下一題 ➡️</button>
-            </div>
-            <button class="nav-btn" style="margin-top: 10px; background: #ffcccc;" onclick="endQuizEarly()">提早交卷</button>
+            <button class="btn" style="background: #ffcccc; margin-top: 10px;" onclick="endQuizEarly()">提早交卷</button>
         </div>
 
         <div id="result-screen" class="screen">
@@ -330,22 +120,19 @@
             <div style="font-size: 3em;" id="result-emoji">🐰</div>
             <h2 id="final-score">得分: 0 / 100</h2>
             <p id="time-taken">用時: 00:00</p>
-            <p id="result-comment">哇！</p>
-            <button class="btn btn-start" id="upload-score-btn" onclick="uploadScore()">上傳分數到排行榜</button>
-            <button class="btn btn-retry" onclick="location.reload()">再做一次 (Retry)</button>
+            <button class="btn btn-start" id="upload-score-btn" onclick="uploadScore()">上傳分數</button>
+            <button class="btn btn-retry" onclick="location.reload()">再做一次</button>
         </div>
 
         <div id="leaderboard-screen" class="screen">
-            <h1>🏆 特訓班排行榜 🏆</h1>
-            <ul class="leaderboard-list" id="leaderboard-content">
-                <li>載入中...</li>
-            </ul>
+            <h1>🏆 排行榜</h1>
+            <ul style="list-style: none; padding: 0;" id="leaderboard-content"><li>載入中...</li></ul>
             <button class="btn" onclick="location.reload()">回首頁</button>
         </div>
     </div>
 
     <script>
-        // 初始化 Firebase (Compat 版本)
+        // --- Firebase 設定 (使用 Compat 寫法) ---
         const firebaseConfig = {
             apiKey: "AIzaSyCPIHCLEiaUGx5wPlAhAVy2ajBuGEQ39vU",
             authDomain: "soci-sem-1.firebaseapp.com",
@@ -355,92 +142,69 @@
             appId: "1:734898665192:web:7c073eeb21f480d56cfb5d",
             measurementId: "G-J1GW0L4EQN"
         };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-
-        // 題目資料
-        const questions = [
-            // --- 課程總結 ---
-            { q: "根據社會學想像力，我們應將「個人的煩惱」連結到？", options: ["心理問題", "公共議題與結構", "運氣", "基因"], answer: 1, hint: "看見大環境。" },
-            { q: "關於個人與社會的關係，何者正確？", options: ["社會完全控制人", "人完全自由", "雙向互動：社會塑造人，人建構社會", "沒關係"], answer: 2, hint: "我們受限於社會，但也創造社會。" },
-            { q: "學習社會學的主要目的？", options: ["算命", "看穿「常識」背後的假象", "變有錢", "背法條"], answer: 1, hint: "不要視為理所當然。" },
-            { q: "「我成績不好是因為我是勞工階級小孩，資源不足」，這是運用？", options: ["社會學想像力", "偏差行為", "宿命論", "防衛機制"], answer: 0, hint: "個人困境連結階級。" },
-            { q: "老師強調社會學幫助我們理解哪個核心問題？", options: ["投資", "社會不平等的成因", "造原子彈", "人體構造"], answer: 1, hint: "為何有人更有錢/有權？" },
-            // --- 衝突論 ---
-            { q: "衝突論認為社會秩序如何維持？", options: ["共識合作", "優勢階級對弱勢的強制", "符號互動", "宗教感化"], answer: 1, hint: "誰有權力？" },
-            { q: "馬克思認為工人會經歷什麼狀態？", options: ["社會化", "失範", "異化 (Alienation)", "理性化"], answer: 2, hint: "變成機器螺絲釘。" },
-            { q: "衝突論看法律的功能是？", options: ["維護正義", "反映民意", "保護統治階級利益", "解決糾紛"], answer: 2, hint: "法律是富人定的。" },
-            { q: "衝突論如何看待家庭？", options: ["避風港", "性別不平等與剝削場所", "社會化場所", "維持穩定"], answer: 1, hint: "剝削無償勞動。" },
-            // --- 偏差 ---
-            { q: "接受目標(發財)但拒絕合法手段(不工作)，屬於墨頓哪一型？", options: ["順從", "儀式", "創新 (Innovation)", "退縮"], answer: 2, hint: "如小偷、毒販。" },
-            { q: "公務員死守規則放棄升遷，屬於？", options: ["順從", "儀式型", "退縮", "反抗"], answer: 1, hint: "手段V，目標X。" },
-            { q: "將原本犯罪行為修法變成合法，叫什麼手段？", options: ["犯罪化", "疾病化", "合法化/除罪化", "福利化"], answer: 2, hint: "以前犯法現在沒事。" },
-            { q: "將酗酒視為「生病」而非壞事，這是？", options: ["醫療化", "犯罪化", "福利化", "標籤化"], answer: 0, hint: "變醫學問題。" },
-            { q: "「修復式正義」重點是？", options: ["嚴懲", "隔離", "修復關係與對話", "除罪"], answer: 2, hint: "對話與和解。" },
-            // --- 性別 ---
-            { q: "「做性別」是指？", options: ["變性手術", "天生特質", "透過日常互動「表演」性別", "只在職場"], answer: 2, hint: "演男生或女生。" },
-            { q: "女性升遷遇到的隱形障礙叫？", options: ["玻璃天花板", "玻璃手扶梯", "黏地板", "性別隔離"], answer: 0, hint: "看得到上不去。" },
-            { q: "職業婦女下班後做家務，稱為？", options: ["再生產", "第二輪班", "情緒勞動", "玻璃天花板"], answer: 1, hint: "下班後的班。" },
-            { q: "煮飯洗衣等維持勞動力的工作，稱為？", options: ["生產勞動", "再生產勞動", "情緒勞動", "異化"], answer: 1, hint: "支持資本主義的幕後。" }
-        ];
-
-        let currentQuestionIndex = 0;
-        let score = 0;
-        let timerInterval;
-        let startTime;
-        let userAnswers = new Array(questions.length).fill(null);
-        let isAnswered = false;
-
-        function showNotes() {
-            document.getElementById("start-screen").classList.remove("active");
-            document.getElementById("note-screen").classList.add("active");
+        
+        // 初始化
+        try {
+            firebase.initializeApp(firebaseConfig);
+            window.db = firebase.firestore();
+            console.log("Firebase initialized successfully");
+        } catch (e) {
+            console.error("Firebase init error:", e);
+            alert("Firebase 初始化失敗，請檢查網路連線。");
         }
 
-        function hideNotes() {
-            document.getElementById("note-screen").classList.remove("active");
-            document.getElementById("start-screen").classList.add("active");
+        // --- 題目 (精簡版，可自行增加) ---
+        const questions = [
+            { q: "衝突論認為社會秩序如何維持？", options: ["共識合作", "優勢階級的強制", "符號互動", "宗教感化"], answer: 1, hint: "誰有權力？" },
+            { q: "社會學想像力是將個人煩惱連結到？", options: ["心理問題", "公共議題與結構", "運氣", "基因"], answer: 1, hint: "看見大環境。" },
+            { q: "接受目標(發財)但拒絕合法手段(不工作)，屬於墨頓哪一型？", options: ["順從", "儀式", "創新 (Innovation)", "退縮"], answer: 2, hint: "如小偷。" },
+            { q: "將酗酒視為「生病」而非壞事，這是？", options: ["醫療化", "犯罪化", "福利化", "標籤化"], answer: 0, hint: "變醫學問題。" },
+            { q: "「做性別」是指？", options: ["變性手術", "天生特質", "透過日常互動「表演」性別", "只在職場"], answer: 2, hint: "演男生或女生。" },
+            { q: "馬克思認為工人會經歷什麼狀態？", options: ["社會化", "失範", "異化", "理性化"], answer: 2, hint: "變成機器。" },
+            { q: "女性升遷遇到的隱形障礙叫？", options: ["玻璃天花板", "玻璃手扶梯", "黏地板", "隔離"], answer: 0, hint: "看得到上不去。" },
+            { q: "職業婦女下班後做家務，稱為？", options: ["再生產", "第二輪班", "情緒勞動", "玻璃天花板"], answer: 1, hint: "下班後的班。" },
+            { q: "衝突論如何看待家庭？", options: ["避風港", "性別不平等與剝削場所", "社會化場所", "維持穩定"], answer: 1, hint: "剝削無償勞動。" },
+            { q: "修復式正義重點是？", options: ["嚴懲", "隔離", "修復關係與對話", "除罪"], answer: 2, hint: "對話與和解。" }
+        ];
+
+        let currentQuestionIndex = 0, score = 0, timerInterval, startTime;
+        let userAnswers = new Array(questions.length).fill(null);
+
+        function showNotes() { switchScreen('note-screen'); }
+        function hideNotes() { switchScreen('start-screen'); }
+        function switchScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
         }
 
         function startQuiz() {
-            const usernameInput = document.getElementById("username");
-            const username = usernameInput.value.trim();
-            const errorMsg = document.getElementById("name-error-msg");
-
+            const username = document.getElementById("username").value.trim();
             if (!username) {
-                usernameInput.classList.add("input-error");
-                errorMsg.style.display = "block";
-                setTimeout(() => { usernameInput.classList.remove("input-error"); }, 400);
+                document.getElementById("username").classList.add("input-error");
+                document.getElementById("name-error-msg").style.display = "block";
+                setTimeout(() => document.getElementById("username").classList.remove("input-error"), 400);
                 return;
             }
-            
-            errorMsg.style.display = "none";
-            document.getElementById("start-screen").classList.remove("active");
-            document.getElementById("quiz-screen").classList.add("active");
-            
+            switchScreen('quiz-screen');
             startTime = Date.now();
             timerInterval = setInterval(updateTimer, 1000);
             loadQuestion();
         }
 
         function updateTimer() {
-            const now = Date.now();
-            const diff = Math.floor((now - startTime) / 1000);
-            const minutes = Math.floor(diff / 60).toString().padStart(2, '0');
-            const seconds = (diff % 60).toString().padStart(2, '0');
-            document.getElementById("time-display").textContent = `${minutes}:${seconds}`;
+            const diff = Math.floor((Date.now() - startTime) / 1000);
+            const m = Math.floor(diff / 60).toString().padStart(2, '0');
+            const s = (diff % 60).toString().padStart(2, '0');
+            document.getElementById("time-display").textContent = `${m}:${s}`;
         }
 
         function loadQuestion() {
-            isAnswered = false;
             const qData = questions[currentQuestionIndex];
-            const progress = ((currentQuestionIndex) / questions.length) * 100;
-            document.getElementById("progress-bar").style.width = `${progress}%`;
-
             document.getElementById("question-text").textContent = `${currentQuestionIndex + 1}. ${qData.q}`;
             document.getElementById("feedback-text").textContent = "";
-            const optionsContainer = document.getElementById("options-container");
-            optionsContainer.innerHTML = "";
-
+            const container = document.getElementById("options-container");
+            container.innerHTML = "";
+            
             qData.options.forEach((opt, index) => {
                 const btn = document.createElement("div");
                 btn.className = "option-btn";
@@ -448,115 +212,86 @@
                 btn.onclick = () => checkAnswer(index, btn);
                 if (userAnswers[currentQuestionIndex] !== null) {
                     if (index === qData.answer) btn.classList.add("correct");
-                    if (index === userAnswers[currentQuestionIndex] && index !== qData.answer) btn.classList.add("wrong");
+                    else if (index === userAnswers[currentQuestionIndex]) btn.classList.add("wrong");
                 }
-                optionsContainer.appendChild(btn);
+                container.appendChild(btn);
             });
         }
 
-        function checkAnswer(selectedIndex, btnElement) {
+        function checkAnswer(idx, btn) {
             const qData = questions[currentQuestionIndex];
             const feedback = document.getElementById("feedback-text");
-
-            if (selectedIndex === qData.answer) {
-                btnElement.classList.add("correct");
-                feedback.textContent = "✨ 答對了！好棒！";
-                feedback.style.color = "green";
-                if (userAnswers[currentQuestionIndex] === null) {
-                    userAnswers[currentQuestionIndex] = selectedIndex;
-                    score++;
-                }
+            if (idx === qData.answer) {
+                btn.classList.add("correct");
+                feedback.textContent = "✨ 答對了！"; feedback.style.color = "green";
+                if (userAnswers[currentQuestionIndex] === null) { userAnswers[currentQuestionIndex] = idx; score++; }
             } else {
-                btnElement.classList.add("wrong");
-                feedback.textContent = `😢 哎呀... ${qData.hint || "再試一次！"}`;
-                feedback.style.color = "red";
-                if (userAnswers[currentQuestionIndex] === null) {
-                    userAnswers[currentQuestionIndex] = selectedIndex; 
-                }
+                btn.classList.add("wrong");
+                feedback.textContent = `😢 ${qData.hint}`; feedback.style.color = "red";
+                if (userAnswers[currentQuestionIndex] === null) userAnswers[currentQuestionIndex] = idx;
             }
         }
 
         function nextQuestion() {
-            if (currentQuestionIndex < questions.length - 1) {
-                currentQuestionIndex++;
-                loadQuestion();
-            } else {
-                endQuiz();
-            }
+            if (currentQuestionIndex < questions.length - 1) { currentQuestionIndex++; loadQuestion(); }
+            else endQuiz();
         }
-
         function prevQuestion() {
-            if (currentQuestionIndex > 0) {
-                currentQuestionIndex--;
-                loadQuestion();
-            }
+            if (currentQuestionIndex > 0) { currentQuestionIndex--; loadQuestion(); }
         }
-
-        function endQuizEarly() {
-            if(confirm("確定要提早交卷嗎？")) endQuiz();
-        }
+        function endQuizEarly() { if(confirm("確定交卷？")) endQuiz(); }
 
         function endQuiz() {
             clearInterval(timerInterval);
-            document.getElementById("quiz-screen").classList.remove("active");
-            document.getElementById("result-screen").classList.add("active");
+            switchScreen('result-screen');
             document.getElementById("final-score").textContent = `得分: ${score} / ${questions.length}`;
             document.getElementById("time-taken").textContent = `用時: ${document.getElementById("time-display").textContent}`;
-            
-            const comment = document.getElementById("result-comment");
-            const percentage = (score / questions.length) * 100;
-            if (percentage >= 90) { comment.textContent = "太強了！你是社會學大師！(Wai~!)"; document.getElementById("result-emoji").textContent="🌟"; }
-            else if (percentage >= 60) { comment.textContent = "還不錯喔！繼續加油！"; document.getElementById("result-emoji").textContent="😊"; }
-            else { comment.textContent = "不要氣餒，再溫習一下筆記吧！"; document.getElementById("result-emoji").textContent="😭"; }
         }
 
         function uploadScore() {
-            const username = document.getElementById("username").value;
-            const timeStr = document.getElementById("time-display").textContent;
-            const [mins, secs] = timeStr.split(":").map(Number);
-            const totalSeconds = mins * 60 + secs;
             const btn = document.getElementById("upload-score-btn");
-            btn.disabled = true;
-            btn.textContent = "上傳中...";
-
-            db.collection("leaderboard").add({
-                name: username,
+            btn.disabled = true; btn.textContent = "上傳中...";
+            const timeStr = document.getElementById("time-display").textContent;
+            const [m, s] = timeStr.split(":").map(Number);
+            
+            // 嘗試寫入，如果失敗 catch 會抓到
+            window.db.collection("leaderboard").add({
+                name: document.getElementById("username").value,
                 score: score,
                 time: timeStr,
-                seconds: totalSeconds,
+                seconds: m * 60 + s,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             }).then(() => {
-                alert("上傳成功！");
-                showLeaderboard();
-            }).catch((error) => {
-                console.error("Error: ", error);
-                alert("上傳失敗...請檢查 Firestore 規則是否開啟。");
-                btn.disabled = false;
+                alert("上傳成功！"); showLeaderboard();
+            }).catch((e) => {
+                console.error(e);
+                alert("上傳失敗！\n請檢查：\n1. 網路是否連線\n2. Firebase 後台的 Rules 是否已設為 true (公開模式)");
+                btn.disabled = false; btn.textContent = "重試上傳";
             });
         }
 
         function showLeaderboard() {
-            document.getElementById("start-screen").classList.remove("active");
-            document.getElementById("result-screen").classList.remove("active");
-            document.getElementById("leaderboard-screen").classList.add("active");
+            switchScreen('leaderboard-screen');
             const list = document.getElementById("leaderboard-content");
-            list.innerHTML = "<li>載入中... 🏃‍♂️</li>";
-
-            db.collection("leaderboard").orderBy("score", "desc").orderBy("seconds", "asc").limit(10).get().then((querySnapshot) => {
+            list.innerHTML = "<li>載入中...</li>";
+            
+            window.db.collection("leaderboard").orderBy("score", "desc").orderBy("seconds", "asc").limit(10).get()
+            .then((snapshot) => {
                 list.innerHTML = "";
-                let rank = 1;
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
+                let i = 1;
+                snapshot.forEach(doc => {
+                    const d = doc.data();
                     const li = document.createElement("li");
                     li.className = "leaderboard-item";
-                    let rankClass = rank === 1 ? "rank-1" : rank === 2 ? "rank-2" : rank === 3 ? "rank-3" : "";
-                    li.innerHTML = `<span class="${rankClass}">#${rank} ${data.name}</span><span>${data.score}分 (${data.time})</span>`;
+                    li.innerHTML = `<span class="${i<=3?'rank-'+i:''}">${i}. ${d.name}</span><span>${d.score}分 (${d.time})</span>`;
                     list.appendChild(li);
-                    rank++;
+                    i++;
                 });
-                if (rank === 1) list.innerHTML = "<li>暫無數據，快來當第一名！</li>";
-            }).catch((error) => {
-                list.innerHTML = "<li>讀取失敗...</li>";
+                if(i===1) list.innerHTML = "<li>暫無數據，快來搶頭香！</li>";
+            })
+            .catch(e => {
+                console.error(e);
+                list.innerHTML = "<li style='color:red'>讀取失敗...請檢查 Firebase Rules 設定。</li>";
             });
         }
     </script>
