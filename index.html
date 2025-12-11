@@ -2,8 +2,8 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>社會學導論 x 吉伊卡哇特訓班 (iPad修復版)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>社會學導論 x 吉伊卡哇特訓班 (全平台修復版)</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
     <style>
@@ -15,6 +15,10 @@
             --text: #5a4d4d; --bg: #fffbf0; --error: #ff6b6b;
         }
 
+        * {
+            box-sizing: border-box; /* 確保 padding 不會撐大寬度 */
+        }
+
         body {
             font-family: 'Kosugi Maru', 'Microsoft JhengHei', sans-serif;
             background-color: var(--bg);
@@ -24,47 +28,76 @@
             margin: 0; padding: 0;
             display: flex; justify-content: center; align-items: center;
             min-height: 100vh;
+            /* 防止手機下拉重整 */
+            overscroll-behavior-y: none;
         }
 
         .container {
-            width: 90%; max-width: 600px;
-            background: white; border-radius: 30px;
+            width: 90%; 
+            max-width: 600px;
+            background: white; 
+            border-radius: 30px;
             box-shadow: 0 10px 25px rgba(255, 182, 193, 0.4);
-            padding: 30px; text-align: center;
-            border: 5px solid white; outline: 5px dashed var(--primary);
-            position: relative; overflow-y: auto; max-height: 90vh;
+            padding: 30px; 
+            text-align: center;
+            border: 5px solid white; 
+            outline: 5px dashed var(--primary);
+            position: relative; 
+            overflow-y: auto; 
+            max-height: 90vh; /* 避免超過畫面高度 */
+            
+            /* iOS 滑動順暢優化 */
+            -webkit-overflow-scrolling: touch; 
         }
 
-        h1 { color: var(--primary); text-shadow: 2px 2px 0px var(--text); font-size: 2.5em; margin-bottom: 20px; }
-        h2 { color: var(--secondary); }
+        h1 { 
+            color: var(--primary); 
+            text-shadow: 2px 2px 0px var(--text); 
+            font-size: 2.2em; 
+            margin-bottom: 15px; 
+            line-height: 1.2;
+        }
+        
+        h2 { color: var(--secondary); margin-top: 0;}
 
         .btn {
             background-color: var(--secondary); color: white; border: none;
-            padding: 12px 25px; font-size: 1.2em; border-radius: 50px;
-            cursor: pointer; margin: 10px; width: 80%; max-width: 300px;
+            padding: 12px 15px; font-size: 1.1em; border-radius: 50px;
+            cursor: pointer; margin: 8px; width: 100%; max-width: 280px;
             box-shadow: 0 5px 0 #77aadd; transition: transform 0.1s;
-            /* 避免 iPad 點擊反灰 */
             -webkit-tap-highlight-color: transparent;
+            font-weight: bold;
         }
-        .btn:active { transform: translateY(5px); box-shadow: none; }
+        .btn:active { transform: translateY(4px); box-shadow: 0 1px 0 #77aadd; }
         .btn-start { background-color: var(--primary); box-shadow: 0 5px 0 #ff99bb; }
+        .btn-start:active { box-shadow: 0 1px 0 #ff99bb; }
         .btn-retry { background-color: var(--accent); color: #8B4513; box-shadow: 0 5px 0 #e6d980; }
+        .btn-retry:active { box-shadow: 0 1px 0 #e6d980; }
         .btn-note { background-color: #ffd700; color: #8B4513; box-shadow: 0 5px 0 #daa520; }
+        .btn-note:active { box-shadow: 0 1px 0 #daa520; }
         
-        .screen { display: none; }
-        .active { display: block; animation: popIn 0.5s; }
-        @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .screen { display: none; width: 100%; }
+        .active { display: block; animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes popIn { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
+        /* 輸入框優化 */
         input[type="text"] {
-            padding: 15px; border-radius: 20px; border: 3px solid var(--secondary);
-            font-size: 1.1em; width: 70%; text-align: center; outline: none;
-            -webkit-appearance: none; /* iPad 輸入框優化 */
+            padding: 12px; border-radius: 20px; border: 3px solid var(--secondary);
+            font-size: 16px; /* 關鍵：iOS 預設 16px 以下會自動放大螢幕，這裡固定為 16px */
+            width: 80%; max-width: 300px;
+            text-align: center; outline: none;
+            -webkit-appearance: none; 
+            margin-bottom: 10px;
         }
         .input-error { border-color: var(--error) !important; background-color: #fff0f0; }
 
         /* Note Styles */
-        .note-content { text-align: left; background: #fff8e1; padding: 20px; border-radius: 15px; border: 2px dashed #f6e58d; margin-bottom: 20px; line-height: 1.6;}
-        .note-title { color: #d35400; font-weight: bold; margin-top: 15px; border-bottom: 2px solid #ffeaa7; display: inline-block; }
+        .note-content { 
+            text-align: left; background: #fff8e1; padding: 15px; 
+            border-radius: 15px; border: 2px dashed #f6e58d; 
+            margin-bottom: 20px; line-height: 1.6; font-size: 0.95em;
+        }
+        .note-title { color: #d35400; font-weight: bold; margin-top: 12px; border-bottom: 2px solid #ffeaa7; display: inline-block; }
         .highlight { background: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%); padding: 0 5px; border-radius: 3px; }
 
         /* Quiz Styles */
@@ -72,20 +105,62 @@
             background: white; border: 2px solid #eee; padding: 15px;
             border-radius: 15px; cursor: pointer; text-align: left; margin-bottom: 10px;
             width: 100%; box-sizing: border-box; -webkit-tap-highlight-color: transparent;
+            font-size: 1em;
+            transition: background 0.2s;
         }
-        .option-btn.correct { background-color: #d4edda; border-color: #28a745; color: #155724; }
-        .option-btn.wrong { background-color: #f8d7da; border-color: #dc3545; color: #721c24; }
+        /* 電腦版才有 hover 效果，避免手機點擊黏滯 */
+        @media (hover: hover) {
+            .option-btn:hover { background-color: #f0f8ff; border-color: var(--secondary); }
+        }
+        .option-btn.correct { background-color: #d4edda !important; border-color: #28a745; color: #155724; }
+        .option-btn.wrong { background-color: #f8d7da !important; border-color: #dc3545; color: #721c24; }
         
         .leaderboard-item {
-            background: white; border-bottom: 2px dashed #eee; padding: 10px;
-            display: flex; justify-content: space-between; align-items: center;
+            background: white; border-bottom: 2px dashed #eee; padding: 12px 5px;
+            display: flex; justify-content: space-between; align-items: center; font-size: 0.9em;
         }
-        .rank-1 { color: gold; font-weight: bold; font-size: 1.2em; }
-        .rank-2 { color: silver; font-weight: bold; }
-        .rank-3 { color: #cd7f32; font-weight: bold; }
+        .rank-1 { color: gold; font-weight: bold; font-size: 1.3em; text-shadow: 1px 1px 0 #999;}
+        .rank-2 { color: silver; font-weight: bold; font-size: 1.1em; text-shadow: 1px 1px 0 #999;}
+        .rank-3 { color: #cd7f32; font-weight: bold; font-size: 1.1em; text-shadow: 1px 1px 0 #999;}
 
-        .progress-container { width: 100%; background-color: #eee; border-radius: 10px; margin-bottom: 20px; height: 10px; }
-        .progress-bar { height: 100%; background-color: var(--secondary); border-radius: 10px; width: 0%; transition: width 0.3s; }
+        .progress-container { width: 100%; background-color: #eee; border-radius: 10px; margin-bottom: 20px; height: 12px; overflow: hidden;}
+        .progress-bar { height: 100%; background-color: var(--secondary); width: 0%; transition: width 0.3s; }
+
+        /* --- 響應式適配 (Responsive Design) --- */
+        
+        /* 針對平板 (iPad) */
+        @media (min-width: 768px) and (max-width: 1024px) {
+            .container {
+                max-width: 700px; /* 平板可以寬一點 */
+                padding: 40px;
+            }
+            h1 { font-size: 3em; }
+            .btn { font-size: 1.3em; padding: 15px 30px; }
+            .option-btn { font-size: 1.2em; padding: 18px; }
+        }
+
+        /* 針對手機 (Mobile) */
+        @media (max-width: 480px) {
+            .container {
+                width: 95%; /* 手機版佔滿一點 */
+                padding: 20px 15px; /* 減少內距 */
+                border-width: 3px;
+                outline-width: 3px;
+            }
+            h1 { font-size: 1.8em; }
+            .btn { width: 100%; margin: 5px 0; font-size: 1em;}
+            
+            /* 調整按鈕排列，讓上一題/下一題在手機更好按 */
+            #quiz-screen .btn {
+                padding: 15px 10px;
+            }
+            
+            /* 排行榜字體縮小 */
+            .leaderboard-item { font-size: 0.85em; }
+            
+            /* 讓輸入框不要太寬 */
+            input[type="text"] { width: 90%; }
+        }
     </style>
 </head>
 <body>
@@ -93,16 +168,16 @@
     <div class="container">
         <div id="start-screen" class="screen active">
             <h1>社會學特訓班</h1>
-            <div style="font-size: 3em;">🐹</div>
-            <p>準備好面對 Sean 老師的挑戰了嗎？</p>
-            <input type="text" id="username" placeholder="請輸入你的暱稱 (必填)">
-            <p id="name-error-msg" style="color: var(--error); font-size: 0.9em; display: none;">* 討伐前一定要留下大名！</p>
-            <br><br>
-            <button class="btn btn-start" onclick="startQuiz()">開始討伐！(Start)</button>
-            <br>
-            <button class="btn btn-note" onclick="showNotes()">📖 查看課程總結精華</button>
-            <br>
-            <button class="btn" onclick="showLeaderboard()">🏆 查看排行榜</button>
+            <div style="font-size: 3.5em; margin: 10px 0; animation: bounce 2s infinite;">🐹</div>
+            <p style="margin: 10px 0;">準備好面對 Sean 老師的挑戰了嗎？</p>
+            <input type="text" id="username" placeholder="請輸入你的暱稱 (必填)" autocomplete="off">
+            <p id="name-error-msg" style="color: var(--error); font-size: 0.9em; display: none; margin-top: 5px;">* 討伐前一定要留下大名！</p>
+            
+            <div style="margin-top: 20px;">
+                <button class="btn btn-start" onclick="startQuiz()">開始討伐！(Start)</button>
+                <button class="btn btn-note" onclick="showNotes()">📖 查看課程總結精華</button>
+                <button class="btn" onclick="showLeaderboard()">🏆 查看排行榜</button>
+            </div>
         </div>
 
         <div id="note-screen" class="screen">
@@ -122,44 +197,59 @@
         </div>
 
         <div id="quiz-screen" class="screen">
-            <div style="font-size: 1.5em; color: var(--primary); font-weight: bold;">⏱️ <span id="time-display">00:00</span></div>
-            <div class="progress-container"><div class="progress-bar" id="progress-bar"></div></div>
-            <div id="question-text" style="font-size: 1.2em; margin: 20px 0; font-weight: bold; background:#fdfdfd; padding:20px; border:2px solid var(--secondary); border-radius:20px;">題目載入中...</div>
-            <div id="options-container" style="display: flex; flex-direction: column; gap: 10px;"></div>
-            <div id="feedback-text" style="margin: 10px; font-weight: bold; min-height: 1.5em;"></div>
-            <div style="display: flex; justify-content: space-between;">
-                <button class="btn" style="width: 45%; background:#ddd; color:#666;" onclick="prevQuestion()">⬅️ 上一題</button>
-                <button class="btn" style="width: 45%;" onclick="nextQuestion()">下一題 ➡️</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <div style="font-size: 1.2em; color: var(--primary); font-weight: bold;">⏱️ <span id="time-display">00:00</span></div>
+                <div style="font-size: 0.9em; color: #999;">(<span id="current-q-num">1</span>/<span id="total-q-num">30</span>)</div>
             </div>
-            <button class="btn" style="background: #ffcccc; margin-top: 10px; color: #c0392b;" onclick="endQuizEarly()">提早交卷</button>
+            
+            <div class="progress-container"><div class="progress-bar" id="progress-bar"></div></div>
+            
+            <div id="question-text" style="font-size: 1.1em; margin: 15px 0; font-weight: bold; background:#fdfdfd; padding:15px; border:2px solid var(--secondary); border-radius:20px; text-align: left; line-height: 1.4;">題目載入中...</div>
+            
+            <div id="options-container" style="display: flex; flex-direction: column; gap: 8px;"></div>
+            
+            <div id="feedback-text" style="margin: 10px; font-weight: bold; min-height: 1.5em; font-size: 1.1em;"></div>
+            
+            <div style="display: flex; justify-content: space-between; gap: 10px;">
+                <button class="btn" style="width: 48%; background:#ddd; color:#666; font-size: 1em;" onclick="prevQuestion()">⬅️ 上一題</button>
+                <button class="btn" style="width: 48%; font-size: 1em;" onclick="nextQuestion()">下一題 ➡️</button>
+            </div>
+            <button class="btn" style="background: #ffcccc; margin-top: 15px; color: #c0392b; width: 95%;" onclick="endQuizEarly()">提早交卷</button>
         </div>
 
         <div id="result-screen" class="screen">
             <h1>成績單</h1>
-            <div style="font-size: 3em;" id="result-emoji">🐰</div>
-            <h2 id="final-score">得分: 0 / 100</h2>
-            <p id="time-taken">用時: 00:00</p>
-            <p id="result-comment">哇！</p>
-            <button class="btn btn-start" id="upload-score-btn" onclick="uploadScore()">上傳分數到排行榜</button>
-            <button class="btn btn-retry" onclick="location.reload()">再做一次 (Retry)</button>
+            <div style="font-size: 4em; animation: bounce 1s infinite;" id="result-emoji">🐰</div>
+            <h2 id="final-score" style="font-size: 2em; margin: 10px 0;">得分: 0 / 100</h2>
+            <p id="time-taken" style="color: #666;">用時: 00:00</p>
+            <p id="result-comment" style="font-size: 1.1em; font-weight: bold; color: var(--text);">哇！</p>
+            
+            <div style="margin-top: 20px;">
+                <button class="btn btn-start" id="upload-score-btn" onclick="uploadScore()">上傳分數到排行榜</button>
+                <button class="btn btn-retry" onclick="location.reload()">再做一次 (Retry)</button>
+            </div>
         </div>
 
         <div id="leaderboard-screen" class="screen">
             <h1>🏆 特訓班排行榜 🏆</h1>
-            <ul style="list-style: none; padding: 0; max-height: 300px; overflow-y: auto;" id="leaderboard-content">
-                <li>載入中...</li>
+            <ul style="list-style: none; padding: 0; max-height: 300px; overflow-y: auto; text-align: left;" id="leaderboard-content">
+                <li style="text-align: center;">載入中... 🏃‍♂️</li>
             </ul>
-            <button class="btn" onclick="location.reload()">回首頁</button>
+            <button class="btn" onclick="location.reload()" style="margin-top: 20px;">回首頁</button>
         </div>
     </div>
 
+    <style>
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+    </style>
+
     <script>
-        // --- iPad 錯誤診斷工具 ---
+        // --- iPad/Mobile 錯誤診斷與優化 ---
         window.onerror = function(message, source, lineno, colno, error) {
-            alert("⚠️ 發生錯誤:\n" + message);
+            console.error(message); // 靜默錯誤，避免一直彈窗干擾體驗
         };
 
-        // --- Firebase 設定 ---
+        // --- Firebase 設定 (維持不變) ---
         const firebaseConfig = {
             apiKey: "AIzaSyCPIHCLEiaUGx5wPlAhAVy2ajBuGEQ39vU",
             authDomain: "soci-sem-1.firebaseapp.com",
@@ -174,10 +264,10 @@
             firebase.initializeApp(firebaseConfig);
             window.db = firebase.firestore();
         } catch (e) {
-            alert("Firebase 連線失敗: " + e.message);
+            console.log("Firebase 連線提示: " + e.message);
         }
 
-        // --- 題目 (完整版 30 題) ---
+        // --- 題目數據 ---
         const questions = [
             { q: "社會學想像力是將個人煩惱連結到？", options: ["心理問題", "公共議題與結構", "運氣", "基因"], answer: 1, hint: "C. Wright Mills: 個人與結構的關聯。" },
             { q: "關於個人與社會的關係，何者正確？", options: ["社會完全控制人", "人完全自由", "雙向互動：社會塑造人，人建構社會", "沒關係"], answer: 2, hint: "我們受限於社會，但也創造社會。" },
@@ -215,19 +305,28 @@
         let currentQuestionIndex = 0, score = 0, timerInterval, startTime;
         let userAnswers = new Array(questions.length).fill(null);
 
+        // 頁面加載時顯示總題數
+        document.addEventListener('DOMContentLoaded', () => {
+             document.getElementById('total-q-num').textContent = questions.length;
+        });
+
         function showNotes() { switchScreen('note-screen'); }
         function hideNotes() { switchScreen('start-screen'); }
         function switchScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
+            // 切換畫面時自動滾動到頂部
+            document.querySelector('.container').scrollTop = 0;
         }
 
         function startQuiz() {
             const username = document.getElementById("username").value.trim();
             if (!username) {
-                document.getElementById("username").classList.add("input-error");
+                const input = document.getElementById("username");
+                input.classList.add("input-error");
+                input.focus();
                 document.getElementById("name-error-msg").style.display = "block";
-                setTimeout(() => document.getElementById("username").classList.remove("input-error"), 400);
+                setTimeout(() => input.classList.remove("input-error"), 400);
                 return;
             }
             switchScreen('quiz-screen');
@@ -247,6 +346,7 @@
             const qData = questions[currentQuestionIndex];
             const progress = ((currentQuestionIndex) / questions.length) * 100;
             document.getElementById("progress-bar").style.width = `${progress}%`;
+            document.getElementById("current-q-num").textContent = currentQuestionIndex + 1;
 
             document.getElementById("question-text").textContent = `${currentQuestionIndex + 1}. ${qData.q}`;
             document.getElementById("feedback-text").textContent = "";
@@ -257,7 +357,9 @@
                 const btn = document.createElement("div");
                 btn.className = "option-btn";
                 btn.textContent = opt;
+                // 使用 onclick 配合 touch 響應
                 btn.onclick = () => checkAnswer(index, btn);
+                
                 if (userAnswers[currentQuestionIndex] !== null) {
                     if (index === qData.answer) btn.classList.add("correct");
                     else if (index === userAnswers[currentQuestionIndex]) btn.classList.add("wrong");
@@ -267,26 +369,47 @@
         }
 
         function checkAnswer(idx, btn) {
+            // 如果這題已經答過，不允許重複點擊
+            if (userAnswers[currentQuestionIndex] !== null) return;
+
             const qData = questions[currentQuestionIndex];
             const feedback = document.getElementById("feedback-text");
+            
+            // 標記答案
+            userAnswers[currentQuestionIndex] = idx;
+
             if (idx === qData.answer) {
                 btn.classList.add("correct");
-                feedback.textContent = "✨ 答對了！(Ya-ha!)"; feedback.style.color = "green";
-                if (userAnswers[currentQuestionIndex] === null) { userAnswers[currentQuestionIndex] = idx; score++; }
+                feedback.textContent = "✨ 答對了！(Ya-ha!)"; 
+                feedback.style.color = "green";
+                score++;
             } else {
                 btn.classList.add("wrong");
-                feedback.textContent = `😢 ${qData.hint}`; feedback.style.color = "red";
-                if (userAnswers[currentQuestionIndex] === null) userAnswers[currentQuestionIndex] = idx;
+                feedback.textContent = `😢 ${qData.hint}`; 
+                feedback.style.color = "#d35400"; // 使用深橘色代替純紅，較柔和
+                
+                // 顯示正確答案
+                const allOpts = document.querySelectorAll('.option-btn');
+                allOpts[qData.answer].classList.add('correct');
             }
         }
 
         function nextQuestion() {
-            if (currentQuestionIndex < questions.length - 1) { currentQuestionIndex++; loadQuestion(); }
-            else endQuiz();
+            if (currentQuestionIndex < questions.length - 1) { 
+                currentQuestionIndex++; 
+                loadQuestion(); 
+            } else {
+                endQuiz();
+            }
         }
+        
         function prevQuestion() {
-            if (currentQuestionIndex > 0) { currentQuestionIndex--; loadQuestion(); }
+            if (currentQuestionIndex > 0) { 
+                currentQuestionIndex--; 
+                loadQuestion(); 
+            }
         }
+        
         function endQuizEarly() { if(confirm("確定交卷？")) endQuiz(); }
 
         function endQuiz() {
@@ -297,9 +420,18 @@
             
             const comment = document.getElementById("result-comment");
             const percentage = (score / questions.length) * 100;
-            if (percentage >= 90) { comment.textContent = "太強了！你是社會學大師！(Wai~!)"; document.getElementById("result-emoji").textContent="🌟"; }
-            else if (percentage >= 60) { comment.textContent = "還不錯喔！繼續加油！"; document.getElementById("result-emoji").textContent="😊"; }
-            else { comment.textContent = "不要氣餒，再溫習一下筆記吧！"; document.getElementById("result-emoji").textContent="😭"; }
+            const emoji = document.getElementById("result-emoji");
+
+            if (percentage >= 90) { 
+                comment.textContent = "太強了！你是社會學大師！(Wai~!)"; 
+                emoji.textContent="🌟"; 
+            } else if (percentage >= 60) { 
+                comment.textContent = "還不錯喔！繼續加油！"; 
+                emoji.textContent="😊"; 
+            } else { 
+                comment.textContent = "不要氣餒，再溫習一下筆記吧！"; 
+                emoji.textContent="😭"; 
+            }
         }
 
         function uploadScore() {
@@ -307,7 +439,6 @@
             btn.disabled = true; btn.textContent = "上傳中...";
             const timeStr = document.getElementById("time-display").textContent;
             
-            // 嘗試寫入 (移除 secondary sort 避免需要 Index)
             window.db.collection("leaderboard").add({
                 name: document.getElementById("username").value,
                 score: score,
@@ -324,29 +455,43 @@
         function showLeaderboard() {
             switchScreen('leaderboard-screen');
             const list = document.getElementById("leaderboard-content");
-            list.innerHTML = "<li>載入中... 🏃‍♂️</li>";
+            list.innerHTML = "<li style='text-align:center'>載入中... 🏃‍♂️</li>";
             
-            // 簡化查詢：只查分數排序，不查時間，避開複合索引錯誤
             window.db.collection("leaderboard").orderBy("score", "desc").limit(10).get()
             .then((snapshot) => {
                 list.innerHTML = "";
                 let i = 1;
                 if (snapshot.empty) {
-                    list.innerHTML = "<li>還沒有人挑戰，快來搶第一！</li>";
+                    list.innerHTML = "<li style='text-align:center'>還沒有人挑戰，快來搶第一！</li>";
                     return;
                 }
                 snapshot.forEach(doc => {
                     const d = doc.data();
                     const li = document.createElement("li");
                     li.className = "leaderboard-item";
-                    let rankColor = i===1?'color:gold':(i===2?'color:silver':(i===3?'color:#cd7f32':''));
-                    li.innerHTML = `<span style="${rankColor};font-weight:bold">#${i} ${d.name}</span><span>${d.score}分 (${d.time})</span>`;
+                    
+                    let rankStyle = '';
+                    if (i === 1) rankStyle = 'rank-1';
+                    else if (i === 2) rankStyle = 'rank-2';
+                    else if (i === 3) rankStyle = 'rank-3';
+
+                    // 截斷過長名字
+                    let safeName = d.name || "無名氏";
+                    if(safeName.length > 8) safeName = safeName.substring(0,8) + "..";
+
+                    li.innerHTML = `
+                        <div style="display:flex; align-items:center;">
+                            <span class="${rankStyle}" style="width:30px; display:inline-block;">#${i}</span>
+                            <span>${safeName}</span>
+                        </div>
+                        <span>${d.score}分 <small style="color:#999">(${d.time})</small></span>
+                    `;
                     list.appendChild(li);
                     i++;
                 });
             })
             .catch(e => {
-                list.innerHTML = `<li style='color:red'>讀取失敗: ${e.message}</li>`;
+                list.innerHTML = `<li style='color:red; text-align:center'>讀取失敗: ${e.message}</li>`;
             });
         }
     </script>
