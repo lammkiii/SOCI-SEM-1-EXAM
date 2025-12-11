@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>社會學導論 x 吉伊卡哇特訓班 (Final Ver.)</title>
+    <title>社會學導論 x 吉伊卡哇特訓班 (免伺服器版)</title>
     <style>
         /* 吉伊卡哇風格 CSS */
         @import url('https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap');
@@ -43,8 +43,8 @@
             outline: 5px dashed var(--primary);
             position: relative;
             overflow: hidden;
-            max-height: 90vh; /* 防止內容太長超出視窗 */
-            overflow-y: auto; /* 允許內部滾動 */
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         h1 {
@@ -68,7 +68,7 @@
             font-family: inherit;
             transition: transform 0.1s, box-shadow 0.1s;
             box-shadow: 0 5px 0 #77aadd;
-            width: 80%; /* 讓按鈕在手機上更好按 */
+            width: 80%;
             max-width: 300px;
         }
 
@@ -102,7 +102,6 @@
             transition: border-color 0.3s;
         }
 
-        /* Error state for input */
         .input-error {
             border-color: var(--error) !important;
             animation: shakeInput 0.4s ease-in-out;
@@ -247,7 +246,6 @@
             min-height: 1.5em;
         }
 
-        /* Progress Bar */
         .progress-container {
             width: 100%;
             background-color: #eee;
@@ -264,6 +262,9 @@
         }
 
     </style>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -315,8 +316,7 @@
             <div class="question-card" id="question-text">
                 題目載入中...
             </div>
-            <div class="options-grid" id="options-container">
-                </div>
+            <div class="options-grid" id="options-container"></div>
             <div class="feedback" id="feedback-text"></div>
             <div class="controls">
                 <button class="nav-btn" onclick="prevQuestion()">⬅️ 上一題</button>
@@ -344,11 +344,8 @@
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics.js";
-        import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
-
+    <script>
+        // 初始化 Firebase (Compat 版本)
         const firebaseConfig = {
             apiKey: "AIzaSyCPIHCLEiaUGx5wPlAhAVy2ajBuGEQ39vU",
             authDomain: "soci-sem-1.firebaseapp.com",
@@ -358,187 +355,64 @@
             appId: "1:734898665192:web:7c073eeb21f480d56cfb5d",
             measurementId: "G-J1GW0L4EQN"
         };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        
-        // Expose functions to window
-        window.db = db;
-        window.addDoc = addDoc;
-        window.collection = collection;
-        window.getDocs = getDocs;
-        window.query = query;
-        window.orderBy = orderBy;
-        window.limit = limit;
-    </script>
-
-    <script>
-        // --- 題庫 (包含原有的重點 + 新增的課程總結題目) ---
+        // 題目資料
         const questions = [
-            // --- 新增：課程總結精華篇 ---
-            {
-                q: "根據社會學想像力 (Sociological Imagination)，我們應該將「個人的煩惱」連結到什麼？",
-                options: ["個人的心理問題", "公共的議題 (Public Issues) 與社會結構", "運氣好壞", "遺傳基因"],
-                answer: 1,
-                hint: "C. Wright Mills 說的，看見大環境。"
-            },
-            {
-                q: "關於「個人與社會」的關係，下列敘述何者最符合社會學觀點？",
-                options: ["社會完全控制個人，人沒有自由", "人可以完全自由地創造社會，不受限制", "社會塑造個人，同時個人也參與建構社會 (雙向互動)", "個人與社會沒有關係"],
-                answer: 2,
-                hint: "我們受限於社會，但也創造社會。"
-            },
-            {
-                q: "學習社會學的主要目的之一是什麼？",
-                options: ["學會算命", "看穿「常識」(Common Sense) 背後的假象與權力結構", "變得比別人有錢", "背誦所有法律條文"],
-                answer: 1,
-                hint: "不要把一切視為理所當然。"
-            },
-            {
-                q: "當你在考試時想到「我成績不好是因為我是勞工階級的小孩，資源不足」，這是在運用？",
-                options: ["社會學想像力", "偏差行為", "宿命論", "心理防衛機制"],
-                answer: 0,
-                hint: "把個人困境連結到階級結構。"
-            },
-            {
-                q: "在「課程總結」中，老師強調社會學幫助我們理解哪一個核心問題？",
-                options: ["如何投資股票", "社會不平等 (Social Inequality) 的成因與運作", "如何製造原子彈", "人體的生物構造"],
-                answer: 1,
-                hint: "為什麼有些人更有錢/有權？"
-            },
-
-            // --- 既有重點：衝突論與馬克思 ---
-            {
-                q: "根據衝突論 (Conflict Theory)，社會秩序是如何維持的？",
-                options: ["透過社會成員的共識與合作", "透過優勢階級對弱勢階級的強制與宰制", "透過微觀的符號互動", "透過宗教的道德感化"],
-                answer: 1,
-                hint: "想想馬克思，誰有權力？"
-            },
-            {
-                q: "馬克思認為，資本主義下的工人會經歷什麼狀態，感到與勞動成果和自我疏離？",
-                options: ["社會化 (Socialization)", "失範 (Anomie)", "異化 (Alienation)", "理性化 (Rationalization)"],
-                answer: 2,
-                hint: "變成機器的螺絲釘..."
-            },
-            {
-                q: "在衝突論的觀點下，法律的主要功能是什麼？",
-                options: ["維護社會正義與公平", "反映全體公民的意志", "保護統治階級的利益與財產", "解決人際糾紛"],
-                answer: 2,
-                hint: "法律是誰定的？有錢人。"
-            },
-            {
-                q: "衝突論如何看待「家庭」？",
-                options: ["家庭是社會的避風港", "家庭是性別不平等與剝削的場所", "家庭是社會化的主要場所", "家庭維持了社會穩定"],
-                answer: 1,
-                hint: "男人剝削女人的無償勞動。"
-            },
-            
-            // --- 既有重點：偏差行為與社會手段 ---
-            {
-                q: "根據墨頓 (Merton) 的偏差理論，接受社會目標(想發財)但拒絕合法手段(不工作)，會產生哪種行為？",
-                options: ["順從型 (Conformity)", "儀式型 (Ritualism)", "創新型 (Innovation)", "退縮型 (Retreatism)"],
-                answer: 2,
-                hint: "例如小偷、毒販。"
-            },
-            {
-                q: "一位公務員每天準時打卡，死守規則，但已經放棄了升遷或發財的夢想。這是墨頓說的哪一型？",
-                options: ["順從型", "儀式型", "退縮型", "反抗型"],
-                answer: 1,
-                hint: "目標❌，手段✅。"
-            },
-            {
-                q: "將原本視為罪行的行為（如通姦、同性婚姻），透過法律修改使其不再違法，這叫什麼手段？",
-                options: ["犯罪化", "疾病化", "合法化/除罪化", "福利化"],
-                answer: 2,
-                hint: "以前犯法，現在沒事。"
-            },
-            {
-                q: "將酗酒或過動症視為「生病」，需要醫生治療而非監獄懲罰，這是什麼過程？",
-                options: ["醫療化 (Medicalization)", "犯罪化", "福利化", "標籤化"],
-                answer: 0,
-                hint: "把問題變成醫學問題。"
-            },
-            {
-                q: "政府提供收容所給露宿者，或社工輔導邊緣青少年，這是哪種社會控制手段？",
-                options: ["修復式正義", "犯罪化", "福利化", "合法化"],
-                answer: 2,
-                hint: "把他們當作弱勢群體照顧。"
-            },
-            {
-                q: "「修復式正義 (Restorative Justice)」的重點是什麼？",
-                options: ["嚴厲懲罰加害者", "將加害者隔離", "修復加害者、被害人與社區的關係", "將行為除罪化"],
-                answer: 2,
-                hint: "重點是對話與和解。"
-            },
-
-            // --- 既有重點：性別 ---
-            {
-                q: "什麼是「做性別 (Doing Gender)」？",
-                options: ["去做變性手術", "性別是天生的特質", "性別是透過日常互動「表演」出來的", "性別只存在於職場"],
-                answer: 2,
-                hint: "我們每天都在「演」男生或女生。"
-            },
-            {
-                q: "女性在職場升遷時，遇到看不見但實際存在的障礙，導致難以進入高層，稱為？",
-                options: ["玻璃天花板 (Glass Ceiling)", "玻璃手扶梯", "黏地板", "性別隔離"],
-                answer: 0,
-                hint: "看得到上面，但上不去。"
-            },
-            {
-                q: "職業婦女下班後，回家還要做家務和照顧小孩，這被稱為什麼？",
-                options: ["再生產勞動", "第二輪班 (Second Shift)", "情緒勞動", "玻璃天花板"],
-                answer: 1,
-                hint: "第一輪班是工作，第二輪班是..."
-            },
-            {
-                q: "煮飯、洗衣、生養小孩，這些讓勞動力得以維持的工作，被稱為？",
-                options: ["生產勞動", "再生產勞動 (Reproductive Labor)", "情緒勞動", "異化勞動"],
-                answer: 1,
-                hint: "支持資本主義運作的幕後功臣。"
-            }
+            // --- 課程總結 ---
+            { q: "根據社會學想像力，我們應將「個人的煩惱」連結到？", options: ["心理問題", "公共議題與結構", "運氣", "基因"], answer: 1, hint: "看見大環境。" },
+            { q: "關於個人與社會的關係，何者正確？", options: ["社會完全控制人", "人完全自由", "雙向互動：社會塑造人，人建構社會", "沒關係"], answer: 2, hint: "我們受限於社會，但也創造社會。" },
+            { q: "學習社會學的主要目的？", options: ["算命", "看穿「常識」背後的假象", "變有錢", "背法條"], answer: 1, hint: "不要視為理所當然。" },
+            { q: "「我成績不好是因為我是勞工階級小孩，資源不足」，這是運用？", options: ["社會學想像力", "偏差行為", "宿命論", "防衛機制"], answer: 0, hint: "個人困境連結階級。" },
+            { q: "老師強調社會學幫助我們理解哪個核心問題？", options: ["投資", "社會不平等的成因", "造原子彈", "人體構造"], answer: 1, hint: "為何有人更有錢/有權？" },
+            // --- 衝突論 ---
+            { q: "衝突論認為社會秩序如何維持？", options: ["共識合作", "優勢階級對弱勢的強制", "符號互動", "宗教感化"], answer: 1, hint: "誰有權力？" },
+            { q: "馬克思認為工人會經歷什麼狀態？", options: ["社會化", "失範", "異化 (Alienation)", "理性化"], answer: 2, hint: "變成機器螺絲釘。" },
+            { q: "衝突論看法律的功能是？", options: ["維護正義", "反映民意", "保護統治階級利益", "解決糾紛"], answer: 2, hint: "法律是富人定的。" },
+            { q: "衝突論如何看待家庭？", options: ["避風港", "性別不平等與剝削場所", "社會化場所", "維持穩定"], answer: 1, hint: "剝削無償勞動。" },
+            // --- 偏差 ---
+            { q: "接受目標(發財)但拒絕合法手段(不工作)，屬於墨頓哪一型？", options: ["順從", "儀式", "創新 (Innovation)", "退縮"], answer: 2, hint: "如小偷、毒販。" },
+            { q: "公務員死守規則放棄升遷，屬於？", options: ["順從", "儀式型", "退縮", "反抗"], answer: 1, hint: "手段V，目標X。" },
+            { q: "將原本犯罪行為修法變成合法，叫什麼手段？", options: ["犯罪化", "疾病化", "合法化/除罪化", "福利化"], answer: 2, hint: "以前犯法現在沒事。" },
+            { q: "將酗酒視為「生病」而非壞事，這是？", options: ["醫療化", "犯罪化", "福利化", "標籤化"], answer: 0, hint: "變醫學問題。" },
+            { q: "「修復式正義」重點是？", options: ["嚴懲", "隔離", "修復關係與對話", "除罪"], answer: 2, hint: "對話與和解。" },
+            // --- 性別 ---
+            { q: "「做性別」是指？", options: ["變性手術", "天生特質", "透過日常互動「表演」性別", "只在職場"], answer: 2, hint: "演男生或女生。" },
+            { q: "女性升遷遇到的隱形障礙叫？", options: ["玻璃天花板", "玻璃手扶梯", "黏地板", "性別隔離"], answer: 0, hint: "看得到上不去。" },
+            { q: "職業婦女下班後做家務，稱為？", options: ["再生產", "第二輪班", "情緒勞動", "玻璃天花板"], answer: 1, hint: "下班後的班。" },
+            { q: "煮飯洗衣等維持勞動力的工作，稱為？", options: ["生產勞動", "再生產勞動", "情緒勞動", "異化"], answer: 1, hint: "支持資本主義的幕後。" }
         ];
-
-        // --- 程式邏輯 ---
 
         let currentQuestionIndex = 0;
         let score = 0;
         let timerInterval;
         let startTime;
-        let userAnswers = new Array(questions.length).fill(null); 
+        let userAnswers = new Array(questions.length).fill(null);
         let isAnswered = false;
 
-        // 顯示筆記
         function showNotes() {
             document.getElementById("start-screen").classList.remove("active");
             document.getElementById("note-screen").classList.add("active");
         }
 
-        // 隱藏筆記
         function hideNotes() {
             document.getElementById("note-screen").classList.remove("active");
             document.getElementById("start-screen").classList.add("active");
         }
 
-        // 啟動測驗 (包含名稱驗證)
         function startQuiz() {
             const usernameInput = document.getElementById("username");
             const username = usernameInput.value.trim();
             const errorMsg = document.getElementById("name-error-msg");
 
             if (!username) {
-                // 如果沒有輸入名稱：搖晃輸入框 + 變紅 + 顯示錯誤訊息
                 usernameInput.classList.add("input-error");
                 errorMsg.style.display = "block";
-                
-                // 移除動畫class以便下次觸發
-                setTimeout(() => {
-                    usernameInput.classList.remove("input-error");
-                }, 400);
+                setTimeout(() => { usernameInput.classList.remove("input-error"); }, 400);
                 return;
             }
             
-            // 驗證通過
             errorMsg.style.display = "none";
             document.getElementById("start-screen").classList.remove("active");
             document.getElementById("quiz-screen").classList.add("active");
@@ -548,7 +422,6 @@
             loadQuestion();
         }
 
-        // 計時器
         function updateTimer() {
             const now = Date.now();
             const diff = Math.floor((now - startTime) / 1000);
@@ -557,19 +430,14 @@
             document.getElementById("time-display").textContent = `${minutes}:${seconds}`;
         }
 
-        // 載入題目
         function loadQuestion() {
             isAnswered = false;
             const qData = questions[currentQuestionIndex];
-            
-            // 更新進度條
             const progress = ((currentQuestionIndex) / questions.length) * 100;
             document.getElementById("progress-bar").style.width = `${progress}%`;
 
             document.getElementById("question-text").textContent = `${currentQuestionIndex + 1}. ${qData.q}`;
             document.getElementById("feedback-text").textContent = "";
-            document.getElementById("feedback-text").style.color = "var(--text)";
-            
             const optionsContainer = document.getElementById("options-container");
             optionsContainer.innerHTML = "";
 
@@ -578,27 +446,22 @@
                 btn.className = "option-btn";
                 btn.textContent = opt;
                 btn.onclick = () => checkAnswer(index, btn);
-                
-                // 如果已經答過，恢復狀態
                 if (userAnswers[currentQuestionIndex] !== null) {
                     if (index === qData.answer) btn.classList.add("correct");
                     if (index === userAnswers[currentQuestionIndex] && index !== qData.answer) btn.classList.add("wrong");
                 }
-                
                 optionsContainer.appendChild(btn);
             });
         }
 
-        // 檢查答案
         function checkAnswer(selectedIndex, btnElement) {
             const qData = questions[currentQuestionIndex];
             const feedback = document.getElementById("feedback-text");
 
             if (selectedIndex === qData.answer) {
                 btnElement.classList.add("correct");
-                feedback.textContent = "✨ 答對了！好棒！(Ya-ha!)";
+                feedback.textContent = "✨ 答對了！好棒！";
                 feedback.style.color = "green";
-                
                 if (userAnswers[currentQuestionIndex] === null) {
                     userAnswers[currentQuestionIndex] = selectedIndex;
                     score++;
@@ -607,7 +470,6 @@
                 btnElement.classList.add("wrong");
                 feedback.textContent = `😢 哎呀... ${qData.hint || "再試一次！"}`;
                 feedback.style.color = "red";
-                
                 if (userAnswers[currentQuestionIndex] === null) {
                     userAnswers[currentQuestionIndex] = selectedIndex; 
                 }
@@ -631,114 +493,71 @@
         }
 
         function endQuizEarly() {
-            if(confirm("確定要提早交卷嗎？")) {
-                endQuiz();
-            }
+            if(confirm("確定要提早交卷嗎？")) endQuiz();
         }
 
         function endQuiz() {
             clearInterval(timerInterval);
             document.getElementById("quiz-screen").classList.remove("active");
             document.getElementById("result-screen").classList.add("active");
+            document.getElementById("final-score").textContent = `得分: ${score} / ${questions.length}`;
+            document.getElementById("time-taken").textContent = `用時: ${document.getElementById("time-display").textContent}`;
             
-            const finalScoreElement = document.getElementById("final-score");
-            finalScoreElement.textContent = `得分: ${score} / ${questions.length}`;
-            
-            const timeStr = document.getElementById("time-display").textContent;
-            document.getElementById("time-taken").textContent = `用時: ${timeStr}`;
-
             const comment = document.getElementById("result-comment");
-            const emoji = document.getElementById("result-emoji");
-            
             const percentage = (score / questions.length) * 100;
-            if (percentage >= 90) {
-                comment.textContent = "太強了！你是社會學大師！(Wai~!)";
-                emoji.textContent = "🌟";
-            } else if (percentage >= 60) {
-                comment.textContent = "還不錯喔！繼續加油！";
-                emoji.textContent = "😊";
-            } else {
-                comment.textContent = "不要氣餒，再溫習一下筆記吧！(哭)";
-                emoji.textContent = "😭";
-            }
+            if (percentage >= 90) { comment.textContent = "太強了！你是社會學大師！(Wai~!)"; document.getElementById("result-emoji").textContent="🌟"; }
+            else if (percentage >= 60) { comment.textContent = "還不錯喔！繼續加油！"; document.getElementById("result-emoji").textContent="😊"; }
+            else { comment.textContent = "不要氣餒，再溫習一下筆記吧！"; document.getElementById("result-emoji").textContent="😭"; }
         }
 
-        // 上傳分數
-        async function uploadScore() {
+        function uploadScore() {
             const username = document.getElementById("username").value;
             const timeStr = document.getElementById("time-display").textContent;
             const [mins, secs] = timeStr.split(":").map(Number);
             const totalSeconds = mins * 60 + secs;
-
             const btn = document.getElementById("upload-score-btn");
             btn.disabled = true;
             btn.textContent = "上傳中...";
 
-            try {
-                await window.addDoc(window.collection(window.db, "leaderboard"), {
-                    name: username,
-                    score: score,
-                    time: timeStr,
-                    seconds: totalSeconds,
-                    timestamp: new Date()
-                });
+            db.collection("leaderboard").add({
+                name: username,
+                score: score,
+                time: timeStr,
+                seconds: totalSeconds,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => {
                 alert("上傳成功！");
                 showLeaderboard();
-            } catch (e) {
-                console.error("Error adding document: ", e);
-                alert("上傳失敗...請檢查網路");
+            }).catch((error) => {
+                console.error("Error: ", error);
+                alert("上傳失敗...請檢查 Firestore 規則是否開啟。");
                 btn.disabled = false;
-                btn.textContent = "重試上傳";
-            }
+            });
         }
 
-        // 顯示排行榜
-        async function showLeaderboard() {
+        function showLeaderboard() {
             document.getElementById("start-screen").classList.remove("active");
             document.getElementById("result-screen").classList.remove("active");
             document.getElementById("leaderboard-screen").classList.add("active");
-
             const list = document.getElementById("leaderboard-content");
             list.innerHTML = "<li>載入中... 🏃‍♂️</li>";
 
-            try {
-                const q = window.query(
-                    window.collection(window.db, "leaderboard"), 
-                    window.orderBy("score", "desc"),
-                    window.orderBy("seconds", "asc"),
-                    window.limit(10)
-                );
-
-                const querySnapshot = await window.getDocs(q);
+            db.collection("leaderboard").orderBy("score", "desc").orderBy("seconds", "asc").limit(10).get().then((querySnapshot) => {
                 list.innerHTML = "";
-                
                 let rank = 1;
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
                     const li = document.createElement("li");
                     li.className = "leaderboard-item";
-                    
-                    let rankClass = "";
-                    if(rank === 1) rankClass = "rank-1";
-                    if(rank === 2) rankClass = "rank-2";
-                    if(rank === 3) rankClass = "rank-3";
-
-                    li.innerHTML = `
-                        <span class="${rankClass}">#${rank} ${data.name}</span>
-                        <span>${data.score}分 (${data.time})</span>
-                    `;
+                    let rankClass = rank === 1 ? "rank-1" : rank === 2 ? "rank-2" : rank === 3 ? "rank-3" : "";
+                    li.innerHTML = `<span class="${rankClass}">#${rank} ${data.name}</span><span>${data.score}分 (${data.time})</span>`;
                     list.appendChild(li);
                     rank++;
                 });
-
-                if (rank === 1) {
-                    list.innerHTML = "<li>暫無數據，快來當第一名！</li>";
-                }
-
-            } catch (e) {
-                console.error("Error getting documents: ", e);
-                list.innerHTML = "<li>讀取失敗...請稍後再試。</li>";
-            }
+                if (rank === 1) list.innerHTML = "<li>暫無數據，快來當第一名！</li>";
+            }).catch((error) => {
+                list.innerHTML = "<li>讀取失敗...</li>";
+            });
         }
     </script>
 </body>
