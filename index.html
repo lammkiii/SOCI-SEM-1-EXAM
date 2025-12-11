@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>社會學導論 x 吉伊卡哇特訓班</title>
+    <title>社會學導論 x 吉伊卡哇特訓班 (Final Ver.)</title>
     <style>
         /* 吉伊卡哇風格 CSS */
         @import url('https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap');
@@ -14,6 +14,7 @@
             --accent: #fffacd; /* Usagi Yellow */
             --text: #5a4d4d;
             --bg: #fffbf0;
+            --error: #ff6b6b;
         }
 
         body {
@@ -42,6 +43,8 @@
             outline: 5px dashed var(--primary);
             position: relative;
             overflow: hidden;
+            max-height: 90vh; /* 防止內容太長超出視窗 */
+            overflow-y: auto; /* 允許內部滾動 */
         }
 
         h1 {
@@ -50,6 +53,8 @@
             font-size: 2.5em;
             margin-bottom: 20px;
         }
+
+        h2 { color: var(--secondary); }
 
         .btn {
             background-color: var(--secondary);
@@ -63,6 +68,8 @@
             font-family: inherit;
             transition: transform 0.1s, box-shadow 0.1s;
             box-shadow: 0 5px 0 #77aadd;
+            width: 80%; /* 讓按鈕在手機上更好按 */
+            max-width: 300px;
         }
 
         .btn:active {
@@ -72,6 +79,7 @@
 
         .btn-start { background-color: var(--primary); box-shadow: 0 5px 0 #ff99bb; }
         .btn-retry { background-color: var(--accent); color: #8B4513; box-shadow: 0 5px 0 #e6d980; }
+        .btn-note { background-color: #ffd700; color: #8B4513; box-shadow: 0 5px 0 #daa520; }
 
         .screen { display: none; }
         .active { display: block; animation: popIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
@@ -91,6 +99,22 @@
             width: 70%;
             text-align: center;
             color: var(--text);
+            transition: border-color 0.3s;
+        }
+
+        /* Error state for input */
+        .input-error {
+            border-color: var(--error) !important;
+            animation: shakeInput 0.4s ease-in-out;
+            background-color: #fff0f0;
+        }
+
+        @keyframes shakeInput {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+            100% { transform: translateX(0); }
         }
 
         /* Quiz Styles */
@@ -170,6 +194,32 @@
             color: #666;
         }
 
+        /* Study Note Styles */
+        .note-content {
+            text-align: left;
+            background: #fff8e1;
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px dashed #f6e58d;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            line-height: 1.8;
+        }
+        .note-title {
+            color: #d35400;
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-top: 15px;
+            border-bottom: 2px solid #ffeaa7;
+            display: inline-block;
+        }
+        .highlight {
+            background: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%);
+            padding: 0 5px;
+            border-radius: 3px;
+        }
+
         /* Leaderboard */
         .leaderboard-list {
             list-style: none;
@@ -191,12 +241,6 @@
         .rank-2 { color: silver; font-weight: bold; }
         .rank-3 { color: #cd7f32; font-weight: bold; }
 
-        .mascot {
-            width: 100px;
-            margin: 10px auto;
-            display: block;
-        }
-        
         .feedback {
             margin-top: 10px;
             font-weight: bold;
@@ -227,12 +271,40 @@
         <div id="start-screen" class="screen active">
             <h1>社會學特訓班</h1>
             <div style="font-size: 3em;">🐹</div>
-            <p>準備好面對 Sean 老師的挑戰了嗎？<br>衝突論、偏差手段、性別議題...</p>
-            <input type="text" id="username" placeholder="輸入你的暱稱 (Chiikawa)">
+            <p>準備好面對 Sean 老師的挑戰了嗎？<br>衝突論、偏差、性別、課程總結...</p>
+            <input type="text" id="username" placeholder="請輸入你的暱稱 (必填)">
+            <p id="name-error-msg" style="color: var(--error); font-size: 0.9em; display: none;">* 討伐前一定要留下大名！</p>
             <br><br>
             <button class="btn btn-start" onclick="startQuiz()">開始討伐！(Start)</button>
             <br>
-            <button class="btn" onclick="showLeaderboard()">查看排行榜 🏆</button>
+            <button class="btn btn-note" onclick="showNotes()">📖 查看課程總結精華</button>
+            <br>
+            <button class="btn" onclick="showLeaderboard()">🏆 查看排行榜</button>
+        </div>
+
+        <div id="note-screen" class="screen">
+            <h2>📜 課程總結精華筆記</h2>
+            <div class="note-content">
+                <p>這是根據老師最新的「課程總結」整理的必背重點，考試寫問答題很有用喔！</p>
+                
+                <div class="note-title">1. 社會學想像力 (C. Wright Mills)</div>
+                <p>核心概念：將<span class="highlight">個人的煩惱 (Personal Troubles)</span> 連結到 <span class="highlight">公共的議題 (Public Issues)</span>。</p>
+                <p>例子：失業不只是你不努力，可能是經濟結構蕭條。</p>
+
+                <div class="note-title">2. 個人與社會的關係</div>
+                <p>社會塑造了我們（透過社會化），但我們也參與建構社會（透過互動）。</p>
+                <p>我們不是完全自由的，選擇受到「社會位置」（階級、性別）的限制。</p>
+
+                <div class="note-title">3. 為什麼要學社會學？</div>
+                <p>為了看穿「常識」(Common Sense) 背後的假象。</p>
+                <p>為了理解不平等，並對社會議題保持批判性思考。</p>
+
+                <div class="note-title">4. 三大理論口訣</div>
+                <p><b>功能論：</b>社會像人體，求穩定和諧。</p>
+                <p><b>衝突論：</b>社會是戰場，既得利益者剝削弱勢。</p>
+                <p><b>互動論：</b>社會是表演，看我們怎麼定義符號。</p>
+            </div>
+            <button class="btn" onclick="hideNotes()">我記住了！回首頁</button>
         </div>
 
         <div id="quiz-screen" class="screen">
@@ -291,7 +363,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         
-        // Expose functions to window for HTML onclick access
+        // Expose functions to window
         window.db = db;
         window.addDoc = addDoc;
         window.collection = collection;
@@ -302,9 +374,41 @@
     </script>
 
     <script>
-        // --- 題庫 (根據考試範圍精心設計 30 題，可自行複製格式擴充至 100 題) ---
+        // --- 題庫 (包含原有的重點 + 新增的課程總結題目) ---
         const questions = [
-            // 衝突論與馬克思 (Conflict Theory)
+            // --- 新增：課程總結精華篇 ---
+            {
+                q: "根據社會學想像力 (Sociological Imagination)，我們應該將「個人的煩惱」連結到什麼？",
+                options: ["個人的心理問題", "公共的議題 (Public Issues) 與社會結構", "運氣好壞", "遺傳基因"],
+                answer: 1,
+                hint: "C. Wright Mills 說的，看見大環境。"
+            },
+            {
+                q: "關於「個人與社會」的關係，下列敘述何者最符合社會學觀點？",
+                options: ["社會完全控制個人，人沒有自由", "人可以完全自由地創造社會，不受限制", "社會塑造個人，同時個人也參與建構社會 (雙向互動)", "個人與社會沒有關係"],
+                answer: 2,
+                hint: "我們受限於社會，但也創造社會。"
+            },
+            {
+                q: "學習社會學的主要目的之一是什麼？",
+                options: ["學會算命", "看穿「常識」(Common Sense) 背後的假象與權力結構", "變得比別人有錢", "背誦所有法律條文"],
+                answer: 1,
+                hint: "不要把一切視為理所當然。"
+            },
+            {
+                q: "當你在考試時想到「我成績不好是因為我是勞工階級的小孩，資源不足」，這是在運用？",
+                options: ["社會學想像力", "偏差行為", "宿命論", "心理防衛機制"],
+                answer: 0,
+                hint: "把個人困境連結到階級結構。"
+            },
+            {
+                q: "在「課程總結」中，老師強調社會學幫助我們理解哪一個核心問題？",
+                options: ["如何投資股票", "社會不平等 (Social Inequality) 的成因與運作", "如何製造原子彈", "人體的生物構造"],
+                answer: 1,
+                hint: "為什麼有些人更有錢/有權？"
+            },
+
+            // --- 既有重點：衝突論與馬克思 ---
             {
                 q: "根據衝突論 (Conflict Theory)，社會秩序是如何維持的？",
                 options: ["透過社會成員的共識與合作", "透過優勢階級對弱勢階級的強制與宰制", "透過微觀的符號互動", "透過宗教的道德感化"],
@@ -329,14 +433,8 @@
                 answer: 1,
                 hint: "男人剝削女人的無償勞動。"
             },
-            {
-                q: "馬克思將社會分為哪兩個主要階級？",
-                options: ["中產階級與勞工階級", "資產階級與無產階級", "貴族與平民", "白領與藍領"],
-                answer: 1,
-                hint: "擁有生產工具的人 vs 出賣勞力的人。"
-            },
             
-            // 偏差行為與社會手段 (Deviance & Social Means)
+            // --- 既有重點：偏差行為與社會手段 ---
             {
                 q: "根據墨頓 (Merton) 的偏差理論，接受社會目標(想發財)但拒絕合法手段(不工作)，會產生哪種行為？",
                 options: ["順從型 (Conformity)", "儀式型 (Ritualism)", "創新型 (Innovation)", "退縮型 (Retreatism)"],
@@ -348,12 +446,6 @@
                 options: ["順從型", "儀式型", "退縮型", "反抗型"],
                 answer: 1,
                 hint: "目標❌，手段✅。"
-            },
-            {
-                q: "吸毒者或長期流浪者，往往既不接受社會目標，也不參與社會手段，這屬於？",
-                options: ["創新型", "反抗型", "退縮型", "順從型"],
-                answer: 2,
-                hint: "逃避社會，躺平。"
             },
             {
                 q: "將原本視為罪行的行為（如通姦、同性婚姻），透過法律修改使其不再違法，這叫什麼手段？",
@@ -380,13 +472,7 @@
                 hint: "重點是對話與和解。"
             },
 
-            // 性別 (Gender)
-            {
-                q: "「生理性別 (Sex)」與「社會性別 (Gender)」的主要區別是？",
-                options: ["前者是後天學習，後者是天生", "前者是生物學特徵，後者是社會建構", "兩者意思完全一樣", "前者指心理認同，後者指生理特徵"],
-                answer: 1,
-                hint: "Sex是天生的，Gender是社會教你的。"
-            },
+            // --- 既有重點：性別 ---
             {
                 q: "什麼是「做性別 (Doing Gender)」？",
                 options: ["去做變性手術", "性別是天生的特質", "性別是透過日常互動「表演」出來的", "性別只存在於職場"],
@@ -406,90 +492,10 @@
                 hint: "第一輪班是工作，第二輪班是..."
             },
             {
-                q: "為什麼女性平均薪資通常低於男性？(性別工資差異)",
-                options: ["女性能力較差", "職業隔離與再生產勞動價值被低估", "女性不喜歡錢", "這是自然現象"],
-                answer: 1,
-                hint: "女性多集中在低薪服務業。"
-            },
-            {
                 q: "煮飯、洗衣、生養小孩，這些讓勞動力得以維持的工作，被稱為？",
                 options: ["生產勞動", "再生產勞動 (Reproductive Labor)", "情緒勞動", "異化勞動"],
                 answer: 1,
                 hint: "支持資本主義運作的幕後功臣。"
-            },
-            {
-                q: "父權體制 (Patriarchy) 的定義是？",
-                options: ["父親負責賺錢的家庭", "男性在家庭、社會結構中掌握主要權力", "男女平等的社會", "母親掌握權力的社會"],
-                answer: 1,
-                hint: "男人話事。"
-            },
-
-            // 綜合應用題 (老師強調要理解)
-            {
-                q: "如果有人偷東西，衝突論會怎麼解釋？",
-                options: ["他個人道德淪喪", "社會規範失序(失範)", "這是對貧富不均與資源分配不公的反應", "他生病了"],
-                answer: 2,
-                hint: "馬克思看什麼都是階級壓迫。"
-            },
-            {
-                q: "如果有人偷東西，功能論(涂爾幹)會怎麼解釋？",
-                options: ["法律是資產階級的工具", "社會規範崩潰，導致脫序(Anomie)", "他被貼上了小偷的標籤", "他想反抗體制"],
-                answer: 1,
-                hint: "社會生病了，規範失效。"
-            },
-            {
-                q: "對於青少年吸毒，哪種手段傾向於使用「勒戒所」而非「監獄」？",
-                options: ["犯罪化", "醫療化/疾病化", "合法化", "修復式正義"],
-                answer: 1,
-                hint: "把他當病人醫。"
-            },
-            {
-                q: "男生被要求「男兒有淚不輕彈」，這是在進行什麼過程？",
-                options: ["生理發育", "做性別 (Doing Gender)", "玻璃天花板", "偏差行為"],
-                answer: 1,
-                hint: "他在表演符合社會期待的男性樣子。"
-            },
-            {
-                q: "馬克思認為「宗教」是什麼？",
-                options: ["社會穩定的基石", "人民的鴉片", "神聖的象徵", "推動資本主義的動力"],
-                answer: 1,
-                hint: "讓受苦的人麻痺，不去反抗。"
-            },
-            {
-                q: "學校將學生分流(Tracking)，衝突論認為這實際上是在？",
-                options: ["因材施教", "選拔人才", "複製階級不平等", "促進社會流動"],
-                answer: 2,
-                hint: "富人小孩去好班，窮人小孩去放牛班。"
-            },
-            {
-                q: "功能論認為「教育」的顯性功能包括？",
-                options: ["提供托兒服務", "創造人際網絡", "傳授知識與技能", "複製階級"],
-                answer: 2,
-                hint: "學校表面上最主要要做的事。"
-            },
-            {
-                q: "老師對學生的期望會影響學生的表現（比馬龍效應），這是哪個理論的觀點？",
-                options: ["功能論", "衝突論", "符號互動論", "進化論"],
-                answer: 2,
-                hint: "微觀互動，標籤。"
-            },
-            {
-                q: "「玻璃手扶梯」通常是指？",
-                options: ["女性在男性行業升遷快", "男性在女性主導行業(如護理)升遷特別快", "女性升遷困難", "男性升遷困難"],
-                answer: 1,
-                hint: "男人搭扶手電梯，女人爬樓梯。"
-            },
-            {
-                q: "哪一種家庭權力模式在現代社會被視為理想？",
-                options: ["父權制", "母權制", "平權家庭 (Egalitarian)", "無政府家庭"],
-                answer: 2,
-                hint: "共同決策。"
-            },
-            {
-                q: "社會學想像力 (C. Wright Mills) 主要是指？",
-                options: ["想像未來的社會", "將個人煩惱連結到公共議題", "用想像力創造理論", "忽略歷史背景"],
-                answer: 1,
-                hint: "我失業不僅是我不努力，可能是經濟蕭條。"
             }
         ];
 
@@ -499,17 +505,41 @@
         let score = 0;
         let timerInterval;
         let startTime;
-        let userAnswers = new Array(questions.length).fill(null); // 記錄用戶答案
+        let userAnswers = new Array(questions.length).fill(null); 
         let isAnswered = false;
 
-        // 啟動測驗
+        // 顯示筆記
+        function showNotes() {
+            document.getElementById("start-screen").classList.remove("active");
+            document.getElementById("note-screen").classList.add("active");
+        }
+
+        // 隱藏筆記
+        function hideNotes() {
+            document.getElementById("note-screen").classList.remove("active");
+            document.getElementById("start-screen").classList.add("active");
+        }
+
+        // 啟動測驗 (包含名稱驗證)
         function startQuiz() {
-            const username = document.getElementById("username").value.trim();
+            const usernameInput = document.getElementById("username");
+            const username = usernameInput.value.trim();
+            const errorMsg = document.getElementById("name-error-msg");
+
             if (!username) {
-                alert("請輸入暱稱！(Chiikawa 不會說謊)");
+                // 如果沒有輸入名稱：搖晃輸入框 + 變紅 + 顯示錯誤訊息
+                usernameInput.classList.add("input-error");
+                errorMsg.style.display = "block";
+                
+                // 移除動畫class以便下次觸發
+                setTimeout(() => {
+                    usernameInput.classList.remove("input-error");
+                }, 400);
                 return;
             }
             
+            // 驗證通過
+            errorMsg.style.display = "none";
             document.getElementById("start-screen").classList.remove("active");
             document.getElementById("quiz-screen").classList.add("active");
             
@@ -561,30 +591,23 @@
 
         // 檢查答案
         function checkAnswer(selectedIndex, btnElement) {
-            // 學習模式：如果還沒答對過，允許嘗試。但分數只計算第一次。
             const qData = questions[currentQuestionIndex];
             const feedback = document.getElementById("feedback-text");
 
             if (selectedIndex === qData.answer) {
-                // 答對了
                 btnElement.classList.add("correct");
                 feedback.textContent = "✨ 答對了！好棒！(Ya-ha!)";
                 feedback.style.color = "green";
                 
-                // 只有第一次作答才算分
                 if (userAnswers[currentQuestionIndex] === null) {
                     userAnswers[currentQuestionIndex] = selectedIndex;
                     score++;
                 }
-                
-                // 自動下一題? 不，讓用戶自己按，符合「選擇在錯的期間...」需求
             } else {
-                // 答錯了
                 btnElement.classList.add("wrong");
                 feedback.textContent = `😢 哎呀... ${qData.hint || "再試一次！"}`;
                 feedback.style.color = "red";
                 
-                // 記錄第一次錯誤
                 if (userAnswers[currentQuestionIndex] === null) {
                     userAnswers[currentQuestionIndex] = selectedIndex; 
                 }
@@ -640,11 +663,10 @@
             }
         }
 
-        // 上傳分數到 Firebase
+        // 上傳分數
         async function uploadScore() {
             const username = document.getElementById("username").value;
             const timeStr = document.getElementById("time-display").textContent;
-            // 轉換時間為秒數以便排序
             const [mins, secs] = timeStr.split(":").map(Number);
             const totalSeconds = mins * 60 + secs;
 
@@ -653,7 +675,6 @@
             btn.textContent = "上傳中...";
 
             try {
-                // 使用 window.addDoc 等全域變數
                 await window.addDoc(window.collection(window.db, "leaderboard"), {
                     name: username,
                     score: score,
@@ -665,7 +686,7 @@
                 showLeaderboard();
             } catch (e) {
                 console.error("Error adding document: ", e);
-                alert("上傳失敗...請檢查網路或 Firebase 設定。\n(提示：請確保 Firestore 規則設為公開)");
+                alert("上傳失敗...請檢查網路");
                 btn.disabled = false;
                 btn.textContent = "重試上傳";
             }
@@ -681,7 +702,6 @@
             list.innerHTML = "<li>載入中... 🏃‍♂️</li>";
 
             try {
-                // 查詢：分數高到低，時間少到多
                 const q = window.query(
                     window.collection(window.db, "leaderboard"), 
                     window.orderBy("score", "desc"),
