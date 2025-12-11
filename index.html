@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>社會學導論 x 吉伊卡哇特訓班</title>
+    <style>
+        /* 吉伊卡哇風格 CSS */
+        @import url('https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap');
+
+        :root {
+            --primary: #ffcbda; /* Chiikawa Pink */
+            --secondary: #aaddff; /* Hachiware Blue */
+            --accent: #fffacd; /* Usagi Yellow */
+            --text: #5a4d4d;
+            --bg: #fffbf0;
+        }
+
+        body {
+            font-family: 'Kosugi Maru', 'Microsoft JhengHei', sans-serif;
+            background-color: var(--bg);
+            background-image: radial-gradient(circle, #ffe4e1 2px, transparent 2.5px);
+            background-size: 30px 30px;
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 600px;
+            background: white;
+            border-radius: 30px;
+            box-shadow: 0 10px 25px rgba(255, 182, 193, 0.4);
+            padding: 30px;
+            text-align: center;
+            border: 5px solid white;
+            outline: 5px dashed var(--primary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        h1 {
+            color: var(--primary);
+            text-shadow: 2px 2px 0px var(--text);
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.2em;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 10px;
+            font-family: inherit;
+            transition: transform 0.1s, box-shadow 0.1s;
+            box-shadow: 0 5px 0 #77aadd;
+        }
+
+        .btn:active {
+            transform: translateY(5px);
+            box-shadow: none;
+        }
+
+        .btn-start { background-color: var(--primary); box-shadow: 0 5px 0 #ff99bb; }
+        .btn-retry { background-color: var(--accent); color: #8B4513; box-shadow: 0 5px 0 #e6d980; }
+
+        .screen { display: none; }
+        .active { display: block; animation: popIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Input Styles */
+        input[type="text"] {
+            padding: 15px;
+            border-radius: 20px;
+            border: 3px solid var(--secondary);
+            font-size: 1.1em;
+            outline: none;
+            width: 70%;
+            text-align: center;
+            color: var(--text);
+        }
+
+        /* Quiz Styles */
+        .timer {
+            font-size: 1.5em;
+            color: var(--primary);
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .question-card {
+            background: #fdfdfd;
+            border: 2px solid var(--secondary);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            line-height: 1.6;
+        }
+
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid #eee;
+            padding: 15px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+            font-size: 1em;
+            color: var(--text);
+        }
+
+        .option-btn:hover {
+            background-color: #f0f8ff;
+            border-color: var(--secondary);
+        }
+
+        .option-btn.correct {
+            background-color: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+
+        .option-btn.wrong {
+            background-color: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .nav-btn {
+            background: #ddd;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 15px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        /* Leaderboard */
+        .leaderboard-list {
+            list-style: none;
+            padding: 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .leaderboard-item {
+            background: white;
+            border-bottom: 2px dashed #eee;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .rank-1 { color: gold; font-weight: bold; font-size: 1.2em; }
+        .rank-2 { color: silver; font-weight: bold; }
+        .rank-3 { color: #cd7f32; font-weight: bold; }
+
+        .mascot {
+            width: 100px;
+            margin: 10px auto;
+            display: block;
+        }
+        
+        .feedback {
+            margin-top: 10px;
+            font-weight: bold;
+            min-height: 1.5em;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            width: 100%;
+            background-color: #eee;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            height: 10px;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: var(--secondary);
+            border-radius: 10px;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div id="start-screen" class="screen active">
+            <h1>社會學特訓班</h1>
+            <div style="font-size: 3em;">🐹</div>
+            <p>準備好面對 Sean 老師的挑戰了嗎？<br>衝突論、偏差手段、性別議題...</p>
+            <input type="text" id="username" placeholder="輸入你的暱稱 (Chiikawa)">
+            <br><br>
+            <button class="btn btn-start" onclick="startQuiz()">開始討伐！(Start)</button>
+            <br>
+            <button class="btn" onclick="showLeaderboard()">查看排行榜 🏆</button>
+        </div>
+
+        <div id="quiz-screen" class="screen">
+            <div class="timer">⏱️ <span id="time-display">00:00</span></div>
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            <div class="question-card" id="question-text">
+                題目載入中...
+            </div>
+            <div class="options-grid" id="options-container">
+                </div>
+            <div class="feedback" id="feedback-text"></div>
+            <div class="controls">
+                <button class="nav-btn" onclick="prevQuestion()">⬅️ 上一題</button>
+                <button class="btn" id="next-btn" onclick="nextQuestion()">下一題 ➡️</button>
+            </div>
+            <button class="nav-btn" style="margin-top: 10px; background: #ffcccc;" onclick="endQuizEarly()">提早交卷</button>
+        </div>
+
+        <div id="result-screen" class="screen">
+            <h1>成績單</h1>
+            <div style="font-size: 3em;" id="result-emoji">🐰</div>
+            <h2 id="final-score">得分: 0 / 100</h2>
+            <p id="time-taken">用時: 00:00</p>
+            <p id="result-comment">哇！</p>
+            <button class="btn btn-start" id="upload-score-btn" onclick="uploadScore()">上傳分數到排行榜</button>
+            <button class="btn btn-retry" onclick="location.reload()">再做一次 (Retry)</button>
+        </div>
+
+        <div id="leaderboard-screen" class="screen">
+            <h1>🏆 特訓班排行榜 🏆</h1>
+            <ul class="leaderboard-list" id="leaderboard-content">
+                <li>載入中...</li>
+            </ul>
+            <button class="btn" onclick="location.reload()">回首頁</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics.js";
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCPIHCLEiaUGx5wPlAhAVy2ajBuGEQ39vU",
+            authDomain: "soci-sem-1.firebaseapp.com",
+            projectId: "soci-sem-1",
+            storageBucket: "soci-sem-1.firebasestorage.app",
+            messagingSenderId: "734898665192",
+            appId: "1:734898665192:web:7c073eeb21f480d56cfb5d",
+            measurementId: "G-J1GW0L4EQN"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        // Expose functions to window for HTML onclick access
+        window.db = db;
+        window.addDoc = addDoc;
+        window.collection = collection;
+        window.getDocs = getDocs;
+        window.query = query;
+        window.orderBy = orderBy;
+        window.limit = limit;
+    </script>
+
+    <script>
+        // --- 題庫 (根據考試範圍精心設計 30 題，可自行複製格式擴充至 100 題) ---
+        const questions = [
+            // 衝突論與馬克思 (Conflict Theory)
+            {
+                q: "根據衝突論 (Conflict Theory)，社會秩序是如何維持的？",
+                options: ["透過社會成員的共識與合作", "透過優勢階級對弱勢階級的強制與宰制", "透過微觀的符號互動", "透過宗教的道德感化"],
+                answer: 1,
+                hint: "想想馬克思，誰有權力？"
+            },
+            {
+                q: "馬克思認為，資本主義下的工人會經歷什麼狀態，感到與勞動成果和自我疏離？",
+                options: ["社會化 (Socialization)", "失範 (Anomie)", "異化 (Alienation)", "理性化 (Rationalization)"],
+                answer: 2,
+                hint: "變成機器的螺絲釘..."
+            },
+            {
+                q: "在衝突論的觀點下，法律的主要功能是什麼？",
+                options: ["維護社會正義與公平", "反映全體公民的意志", "保護統治階級的利益與財產", "解決人際糾紛"],
+                answer: 2,
+                hint: "法律是誰定的？有錢人。"
+            },
+            {
+                q: "衝突論如何看待「家庭」？",
+                options: ["家庭是社會的避風港", "家庭是性別不平等與剝削的場所", "家庭是社會化的主要場所", "家庭維持了社會穩定"],
+                answer: 1,
+                hint: "男人剝削女人的無償勞動。"
+            },
+            {
+                q: "馬克思將社會分為哪兩個主要階級？",
+                options: ["中產階級與勞工階級", "資產階級與無產階級", "貴族與平民", "白領與藍領"],
+                answer: 1,
+                hint: "擁有生產工具的人 vs 出賣勞力的人。"
+            },
+            
+            // 偏差行為與社會手段 (Deviance & Social Means)
+            {
+                q: "根據墨頓 (Merton) 的偏差理論，接受社會目標(想發財)但拒絕合法手段(不工作)，會產生哪種行為？",
+                options: ["順從型 (Conformity)", "儀式型 (Ritualism)", "創新型 (Innovation)", "退縮型 (Retreatism)"],
+                answer: 2,
+                hint: "例如小偷、毒販。"
+            },
+            {
+                q: "一位公務員每天準時打卡，死守規則，但已經放棄了升遷或發財的夢想。這是墨頓說的哪一型？",
+                options: ["順從型", "儀式型", "退縮型", "反抗型"],
+                answer: 1,
+                hint: "目標❌，手段✅。"
+            },
+            {
+                q: "吸毒者或長期流浪者，往往既不接受社會目標，也不參與社會手段，這屬於？",
+                options: ["創新型", "反抗型", "退縮型", "順從型"],
+                answer: 2,
+                hint: "逃避社會，躺平。"
+            },
+            {
+                q: "將原本視為罪行的行為（如通姦、同性婚姻），透過法律修改使其不再違法，這叫什麼手段？",
+                options: ["犯罪化", "疾病化", "合法化/除罪化", "福利化"],
+                answer: 2,
+                hint: "以前犯法，現在沒事。"
+            },
+            {
+                q: "將酗酒或過動症視為「生病」，需要醫生治療而非監獄懲罰，這是什麼過程？",
+                options: ["醫療化 (Medicalization)", "犯罪化", "福利化", "標籤化"],
+                answer: 0,
+                hint: "把問題變成醫學問題。"
+            },
+            {
+                q: "政府提供收容所給露宿者，或社工輔導邊緣青少年，這是哪種社會控制手段？",
+                options: ["修復式正義", "犯罪化", "福利化", "合法化"],
+                answer: 2,
+                hint: "把他們當作弱勢群體照顧。"
+            },
+            {
+                q: "「修復式正義 (Restorative Justice)」的重點是什麼？",
+                options: ["嚴厲懲罰加害者", "將加害者隔離", "修復加害者、被害人與社區的關係", "將行為除罪化"],
+                answer: 2,
+                hint: "重點是對話與和解。"
+            },
+
+            // 性別 (Gender)
+            {
+                q: "「生理性別 (Sex)」與「社會性別 (Gender)」的主要區別是？",
+                options: ["前者是後天學習，後者是天生", "前者是生物學特徵，後者是社會建構", "兩者意思完全一樣", "前者指心理認同，後者指生理特徵"],
+                answer: 1,
+                hint: "Sex是天生的，Gender是社會教你的。"
+            },
+            {
+                q: "什麼是「做性別 (Doing Gender)」？",
+                options: ["去做變性手術", "性別是天生的特質", "性別是透過日常互動「表演」出來的", "性別只存在於職場"],
+                answer: 2,
+                hint: "我們每天都在「演」男生或女生。"
+            },
+            {
+                q: "女性在職場升遷時，遇到看不見但實際存在的障礙，導致難以進入高層，稱為？",
+                options: ["玻璃天花板 (Glass Ceiling)", "玻璃手扶梯", "黏地板", "性別隔離"],
+                answer: 0,
+                hint: "看得到上面，但上不去。"
+            },
+            {
+                q: "職業婦女下班後，回家還要做家務和照顧小孩，這被稱為什麼？",
+                options: ["再生產勞動", "第二輪班 (Second Shift)", "情緒勞動", "玻璃天花板"],
+                answer: 1,
+                hint: "第一輪班是工作，第二輪班是..."
+            },
+            {
+                q: "為什麼女性平均薪資通常低於男性？(性別工資差異)",
+                options: ["女性能力較差", "職業隔離與再生產勞動價值被低估", "女性不喜歡錢", "這是自然現象"],
+                answer: 1,
+                hint: "女性多集中在低薪服務業。"
+            },
+            {
+                q: "煮飯、洗衣、生養小孩，這些讓勞動力得以維持的工作，被稱為？",
+                options: ["生產勞動", "再生產勞動 (Reproductive Labor)", "情緒勞動", "異化勞動"],
+                answer: 1,
+                hint: "支持資本主義運作的幕後功臣。"
+            },
+            {
+                q: "父權體制 (Patriarchy) 的定義是？",
+                options: ["父親負責賺錢的家庭", "男性在家庭、社會結構中掌握主要權力", "男女平等的社會", "母親掌握權力的社會"],
+                answer: 1,
+                hint: "男人話事。"
+            },
+
+            // 綜合應用題 (老師強調要理解)
+            {
+                q: "如果有人偷東西，衝突論會怎麼解釋？",
+                options: ["他個人道德淪喪", "社會規範失序(失範)", "這是對貧富不均與資源分配不公的反應", "他生病了"],
+                answer: 2,
+                hint: "馬克思看什麼都是階級壓迫。"
+            },
+            {
+                q: "如果有人偷東西，功能論(涂爾幹)會怎麼解釋？",
+                options: ["法律是資產階級的工具", "社會規範崩潰，導致脫序(Anomie)", "他被貼上了小偷的標籤", "他想反抗體制"],
+                answer: 1,
+                hint: "社會生病了，規範失效。"
+            },
+            {
+                q: "對於青少年吸毒，哪種手段傾向於使用「勒戒所」而非「監獄」？",
+                options: ["犯罪化", "醫療化/疾病化", "合法化", "修復式正義"],
+                answer: 1,
+                hint: "把他當病人醫。"
+            },
+            {
+                q: "男生被要求「男兒有淚不輕彈」，這是在進行什麼過程？",
+                options: ["生理發育", "做性別 (Doing Gender)", "玻璃天花板", "偏差行為"],
+                answer: 1,
+                hint: "他在表演符合社會期待的男性樣子。"
+            },
+            {
+                q: "馬克思認為「宗教」是什麼？",
+                options: ["社會穩定的基石", "人民的鴉片", "神聖的象徵", "推動資本主義的動力"],
+                answer: 1,
+                hint: "讓受苦的人麻痺，不去反抗。"
+            },
+            {
+                q: "學校將學生分流(Tracking)，衝突論認為這實際上是在？",
+                options: ["因材施教", "選拔人才", "複製階級不平等", "促進社會流動"],
+                answer: 2,
+                hint: "富人小孩去好班，窮人小孩去放牛班。"
+            },
+            {
+                q: "功能論認為「教育」的顯性功能包括？",
+                options: ["提供托兒服務", "創造人際網絡", "傳授知識與技能", "複製階級"],
+                answer: 2,
+                hint: "學校表面上最主要要做的事。"
+            },
+            {
+                q: "老師對學生的期望會影響學生的表現（比馬龍效應），這是哪個理論的觀點？",
+                options: ["功能論", "衝突論", "符號互動論", "進化論"],
+                answer: 2,
+                hint: "微觀互動，標籤。"
+            },
+            {
+                q: "「玻璃手扶梯」通常是指？",
+                options: ["女性在男性行業升遷快", "男性在女性主導行業(如護理)升遷特別快", "女性升遷困難", "男性升遷困難"],
+                answer: 1,
+                hint: "男人搭扶手電梯，女人爬樓梯。"
+            },
+            {
+                q: "哪一種家庭權力模式在現代社會被視為理想？",
+                options: ["父權制", "母權制", "平權家庭 (Egalitarian)", "無政府家庭"],
+                answer: 2,
+                hint: "共同決策。"
+            },
+            {
+                q: "社會學想像力 (C. Wright Mills) 主要是指？",
+                options: ["想像未來的社會", "將個人煩惱連結到公共議題", "用想像力創造理論", "忽略歷史背景"],
+                answer: 1,
+                hint: "我失業不僅是我不努力，可能是經濟蕭條。"
+            }
+        ];
+
+        // --- 程式邏輯 ---
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let timerInterval;
+        let startTime;
+        let userAnswers = new Array(questions.length).fill(null); // 記錄用戶答案
+        let isAnswered = false;
+
+        // 啟動測驗
+        function startQuiz() {
+            const username = document.getElementById("username").value.trim();
+            if (!username) {
+                alert("請輸入暱稱！(Chiikawa 不會說謊)");
+                return;
+            }
+            
+            document.getElementById("start-screen").classList.remove("active");
+            document.getElementById("quiz-screen").classList.add("active");
+            
+            startTime = Date.now();
+            timerInterval = setInterval(updateTimer, 1000);
+            loadQuestion();
+        }
+
+        // 計時器
+        function updateTimer() {
+            const now = Date.now();
+            const diff = Math.floor((now - startTime) / 1000);
+            const minutes = Math.floor(diff / 60).toString().padStart(2, '0');
+            const seconds = (diff % 60).toString().padStart(2, '0');
+            document.getElementById("time-display").textContent = `${minutes}:${seconds}`;
+        }
+
+        // 載入題目
+        function loadQuestion() {
+            isAnswered = false;
+            const qData = questions[currentQuestionIndex];
+            
+            // 更新進度條
+            const progress = ((currentQuestionIndex) / questions.length) * 100;
+            document.getElementById("progress-bar").style.width = `${progress}%`;
+
+            document.getElementById("question-text").textContent = `${currentQuestionIndex + 1}. ${qData.q}`;
+            document.getElementById("feedback-text").textContent = "";
+            document.getElementById("feedback-text").style.color = "var(--text)";
+            
+            const optionsContainer = document.getElementById("options-container");
+            optionsContainer.innerHTML = "";
+
+            qData.options.forEach((opt, index) => {
+                const btn = document.createElement("div");
+                btn.className = "option-btn";
+                btn.textContent = opt;
+                btn.onclick = () => checkAnswer(index, btn);
+                
+                // 如果已經答過，恢復狀態
+                if (userAnswers[currentQuestionIndex] !== null) {
+                    if (index === qData.answer) btn.classList.add("correct");
+                    if (index === userAnswers[currentQuestionIndex] && index !== qData.answer) btn.classList.add("wrong");
+                }
+                
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        // 檢查答案
+        function checkAnswer(selectedIndex, btnElement) {
+            // 學習模式：如果還沒答對過，允許嘗試。但分數只計算第一次。
+            const qData = questions[currentQuestionIndex];
+            const feedback = document.getElementById("feedback-text");
+
+            if (selectedIndex === qData.answer) {
+                // 答對了
+                btnElement.classList.add("correct");
+                feedback.textContent = "✨ 答對了！好棒！(Ya-ha!)";
+                feedback.style.color = "green";
+                
+                // 只有第一次作答才算分
+                if (userAnswers[currentQuestionIndex] === null) {
+                    userAnswers[currentQuestionIndex] = selectedIndex;
+                    score++;
+                }
+                
+                // 自動下一題? 不，讓用戶自己按，符合「選擇在錯的期間...」需求
+            } else {
+                // 答錯了
+                btnElement.classList.add("wrong");
+                feedback.textContent = `😢 哎呀... ${qData.hint || "再試一次！"}`;
+                feedback.style.color = "red";
+                
+                // 記錄第一次錯誤
+                if (userAnswers[currentQuestionIndex] === null) {
+                    userAnswers[currentQuestionIndex] = selectedIndex; 
+                }
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                loadQuestion();
+            } else {
+                endQuiz();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                loadQuestion();
+            }
+        }
+
+        function endQuizEarly() {
+            if(confirm("確定要提早交卷嗎？")) {
+                endQuiz();
+            }
+        }
+
+        function endQuiz() {
+            clearInterval(timerInterval);
+            document.getElementById("quiz-screen").classList.remove("active");
+            document.getElementById("result-screen").classList.add("active");
+            
+            const finalScoreElement = document.getElementById("final-score");
+            finalScoreElement.textContent = `得分: ${score} / ${questions.length}`;
+            
+            const timeStr = document.getElementById("time-display").textContent;
+            document.getElementById("time-taken").textContent = `用時: ${timeStr}`;
+
+            const comment = document.getElementById("result-comment");
+            const emoji = document.getElementById("result-emoji");
+            
+            const percentage = (score / questions.length) * 100;
+            if (percentage >= 90) {
+                comment.textContent = "太強了！你是社會學大師！(Wai~!)";
+                emoji.textContent = "🌟";
+            } else if (percentage >= 60) {
+                comment.textContent = "還不錯喔！繼續加油！";
+                emoji.textContent = "😊";
+            } else {
+                comment.textContent = "不要氣餒，再溫習一下筆記吧！(哭)";
+                emoji.textContent = "😭";
+            }
+        }
+
+        // 上傳分數到 Firebase
+        async function uploadScore() {
+            const username = document.getElementById("username").value;
+            const timeStr = document.getElementById("time-display").textContent;
+            // 轉換時間為秒數以便排序
+            const [mins, secs] = timeStr.split(":").map(Number);
+            const totalSeconds = mins * 60 + secs;
+
+            const btn = document.getElementById("upload-score-btn");
+            btn.disabled = true;
+            btn.textContent = "上傳中...";
+
+            try {
+                // 使用 window.addDoc 等全域變數
+                await window.addDoc(window.collection(window.db, "leaderboard"), {
+                    name: username,
+                    score: score,
+                    time: timeStr,
+                    seconds: totalSeconds,
+                    timestamp: new Date()
+                });
+                alert("上傳成功！");
+                showLeaderboard();
+            } catch (e) {
+                console.error("Error adding document: ", e);
+                alert("上傳失敗...請檢查網路或 Firebase 設定。\n(提示：請確保 Firestore 規則設為公開)");
+                btn.disabled = false;
+                btn.textContent = "重試上傳";
+            }
+        }
+
+        // 顯示排行榜
+        async function showLeaderboard() {
+            document.getElementById("start-screen").classList.remove("active");
+            document.getElementById("result-screen").classList.remove("active");
+            document.getElementById("leaderboard-screen").classList.add("active");
+
+            const list = document.getElementById("leaderboard-content");
+            list.innerHTML = "<li>載入中... 🏃‍♂️</li>";
+
+            try {
+                // 查詢：分數高到低，時間少到多
+                const q = window.query(
+                    window.collection(window.db, "leaderboard"), 
+                    window.orderBy("score", "desc"),
+                    window.orderBy("seconds", "asc"),
+                    window.limit(10)
+                );
+
+                const querySnapshot = await window.getDocs(q);
+                list.innerHTML = "";
+                
+                let rank = 1;
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const li = document.createElement("li");
+                    li.className = "leaderboard-item";
+                    
+                    let rankClass = "";
+                    if(rank === 1) rankClass = "rank-1";
+                    if(rank === 2) rankClass = "rank-2";
+                    if(rank === 3) rankClass = "rank-3";
+
+                    li.innerHTML = `
+                        <span class="${rankClass}">#${rank} ${data.name}</span>
+                        <span>${data.score}分 (${data.time})</span>
+                    `;
+                    list.appendChild(li);
+                    rank++;
+                });
+
+                if (rank === 1) {
+                    list.innerHTML = "<li>暫無數據，快來當第一名！</li>";
+                }
+
+            } catch (e) {
+                console.error("Error getting documents: ", e);
+                list.innerHTML = "<li>讀取失敗...請稍後再試。</li>";
+            }
+        }
+    </script>
+</body>
+</html>
